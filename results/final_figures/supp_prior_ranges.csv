@@ -1,0 +1,18 @@
+parameter,section,units,description,old_lhs_lower,old_lhs_upper,declared_lower,declared_upper,bound_changed
+N0,Initial conditions,individuals,Initial population size,800000.0,850000.0,800000.0,850000.0,False
+C_seed,Initial conditions,infections/week,Initial incidence history before $t=0$,0.0,100.0,0.0,150.0,True
+gamma,Epidemic dynamics,week$^{-1}$,Recovery rate (inverse infectious period),0.5,3.0,0.5,3.0,False
+a0,Spillover transmission ($\beta_R$),log-scale,Baseline spillover intensity,-9.0,-5.5,-11.0,-5.5,True
+aT,Spillover transmission ($\beta_R$),--,Temperature effect,-1.0,1.0,-2.0,1.0,True
+aTT,Spillover transmission ($\beta_R$),--,Temperature quadratic effect,-1.0,0.0,-2.0,0.0,True
+ae,Spillover transmission ($\beta_R$),--,Vapour pressure (humidity) effect,-1.0,1.0,-1.0,1.0,False
+aR,Spillover transmission ($\beta_R$),--,Rainfall effect,-1.0,1.0,-4.0,1.0,True
+betaH0,Human transmission ($\beta_H$),week$^{-1}$,Baseline human transmission rate,0.01,1.5,0.01,3.0,True
+bT_H,Human transmission ($\beta_H$),--,Temperature effect on human transmission,-1.0,1.0,-2.0,2.0,True
+be_H,Human transmission ($\beta_H$),--,Humidity effect on human transmission,-1.0,1.0,-2.0,2.0,True
+bR_H,Human transmission ($\beta_H$),--,Rainfall effect on human transmission,-1.0,1.0,-2.0,2.0,True
+theta,"Human transmission ($\beta_H$, sigmoid)",--,Magnitude/direction of temporal change (sigmoid),-1.5,1.5,-1.5,1.5,False
+t_star,"Human transmission ($\beta_H$, sigmoid)",weeks,Transition time (sigmoid),4.0,20.0,4.0,20.0,False
+kappa,"Human transmission ($\beta_H$, sigmoid)",week$^{-1}$,Steepness of logistic transition (sigmoid),0.2,3.0,0.2,3.0,False
+psi,Observation model,probability,Infection-to-death scaling parameter,0.05,0.8,0.05,1.0,True
+nb_kappa,Observation model,--,Negative binomial dispersion parameter,0.1,80.0,0.1,80.0,False

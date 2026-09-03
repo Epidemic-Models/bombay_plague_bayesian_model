@@ -1,0 +1,34 @@
+{
+  "betaH_mode": "all_climate",
+  "fit_target": "plague_deaths_reported_fit",
+  "param_names": [
+    "N0",
+    "C_seed",
+    "gamma",
+    "a0",
+    "aT",
+    "aTT",
+    "ae",
+    "aR",
+    "betaH0",
+    "psi",
+    "nb_kappa",
+    "bT_H",
+    "be_H",
+    "bR_H"
+  ],
+  "nlive": 1000,
+  "dlogz": 0.1,
+  "sample": "rslice",
+  "seeded_live_point": true,
+  "elapsed_minutes": 292.4026381333669,
+  "best_loglik": -779.6870775002494,
+  "seed_logl_expected": -780.2592797235,
+  "logZ": -813.4121419686371,
+  "logZ_error": 0.19774558378672896,
+  "betaH0_median": 1.451798819428769,
+  "betaH0_ci": [
+    0.715121738435779,
+    1.9314902401948815
+  ]
+}

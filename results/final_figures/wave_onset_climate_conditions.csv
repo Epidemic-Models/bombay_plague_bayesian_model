@@ -1,0 +1,4 @@
+label,week,deaths,zT,ze,zR,is_edge_confounded
+Series-start boundary (CAUTION: no pre-onset history available),1896-10-02,103.0,0.2472635937062877,0.1877412955903567,1.417852450983026,True
+Internal trough 1 (Wave 1 -> Wave 2),1897-07-23,9.0,0.9688701144849629,0.9154247252243176,0.5680429564112112,False
+Internal trough 2 (Wave 2 -> Wave 3),1898-06-24,25.0,1.7094511493558353,1.175151733955209,-0.5910971941847436,False

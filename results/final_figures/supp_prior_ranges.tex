@@ -1,0 +1,34 @@
+\begin{table}[!htbp]
+\centering
+\caption{Model parameters and prior ranges used in the final Bayesian nested-sampling analysis (common priors across all four $\beta_H$ formulations, as declared in \texttt{src/priors.py}). Time-related quantities are expressed in weeks unless otherwise noted.}
+\label{tab:supp_parameter_ranges}
+\begin{tabularx}{\textwidth}{l l l X}
+\hline
+Parameter & Range & Units & Description \\
+\hline
+\multicolumn{4}{l}{\textbf{Initial conditions}} \\
+$N_0$ & $[800000,\,850000]$ & individuals & Initial population size \\
+$C_{\mathrm{seed}}$ & $[0,\,150]$ & infections/week & Initial incidence history before $t=0$ \\
+\multicolumn{4}{l}{\textbf{Epidemic dynamics}} \\
+$\gamma$ & $[0.5,\,3]$ & week$^{-1}$ & Recovery rate (inverse infectious period) \\
+\multicolumn{4}{l}{\textbf{Spillover transmission ($\beta_R$)}} \\
+$a_0$ & $[-11,\,-5.5]$ & log-scale & Baseline spillover intensity \\
+$a_T$ & $[-2,\,1]$ & -- & Temperature effect \\
+$a_{TT}$ & $[-2,\,0]$ & -- & Temperature quadratic effect \\
+$a_e$ & $[-1,\,1]$ & -- & Vapour pressure (humidity) effect \\
+$a_R$ & $[-4,\,1]$ & -- & Rainfall effect \\
+\multicolumn{4}{l}{\textbf{Human transmission ($\beta_H$)}} \\
+$\beta_{H0}$ & $[0.01,\,3]$ & week$^{-1}$ & Baseline human transmission rate \\
+$b_T^{(H)}$ & $[-2,\,2]$ & -- & Temperature effect on human transmission \\
+$b_e^{(H)}$ & $[-2,\,2]$ & -- & Humidity effect on human transmission \\
+$b_R^{(H)}$ & $[-2,\,2]$ & -- & Rainfall effect on human transmission \\
+\multicolumn{4}{l}{\textbf{Human transmission ($\beta_H$, sigmoid)}} \\
+$\theta$ & $[-1.5,\,1.5]$ & -- & Magnitude/direction of temporal change (sigmoid) \\
+$t^{*}$ & $[4,\,20]$ & weeks & Transition time (sigmoid) \\
+$\kappa_{\mathrm{sig}}$ & $[0.2,\,3]$ & week$^{-1}$ & Steepness of logistic transition (sigmoid) \\
+\multicolumn{4}{l}{\textbf{Observation model}} \\
+$\psi$ & $[0.05,\,1]$ & probability & Infection-to-death scaling parameter \\
+$\kappa_{\mathrm{NB}}$ & $[0.1,\,80]$ & -- & Negative binomial dispersion parameter \\
+\hline
+\end{tabularx}
+\end{table}

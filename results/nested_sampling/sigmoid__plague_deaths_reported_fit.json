@@ -1,0 +1,30 @@
+{
+  "betaH_mode": "sigmoid",
+  "fit_target": "plague_deaths_reported_fit",
+  "nlive": 1000,
+  "dlogz": 0.1,
+  "sample": "auto",
+  "nprocs": 1,
+  "ndim": 14,
+  "param_names": [
+    "N0",
+    "C_seed",
+    "gamma",
+    "a0",
+    "aT",
+    "aTT",
+    "ae",
+    "aR",
+    "betaH0",
+    "psi",
+    "nb_kappa",
+    "theta",
+    "t_star",
+    "kappa"
+  ],
+  "n_weeks_fit": 141,
+  "logz": -841.2537063625696,
+  "logzerr": 0.16173851714984214,
+  "elapsed_minutes": 50.10145090023676,
+  "timestamp_utc": "2026-08-17T20:30:28+00:00"
+}

@@ -1,0 +1,5 @@
+boundary_index,week_ending,observed_deaths,boundary_type
+1,1896-10-02,103.0,series_boundary
+43,1897-07-23,9.0,internal_trough
+91,1898-06-24,25.0,internal_trough
+140,1899-06-02,101.0,series_boundary

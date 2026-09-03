@@ -1,0 +1,4 @@
+scenario,sum_weekly_posterior_medians,percent_of_full_model,percent_reduction_vs_full
+Full model,48313.72399950825,100.0,0.0
+No human transmission,8190.678540408169,16.953109514993166,83.04689048500684
+No recurrent spillover after week 4,500.5779616600445,1.0360988974170973,98.96390110258291

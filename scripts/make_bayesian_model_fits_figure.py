@@ -105,7 +105,7 @@ MODEL_LABELS = {
         r"(a) Constant $\beta_H$",
 
     "humidity_only":
-        r"(b) Humidity-only $\beta_H$",
+        r"(b) Vapour-pressure-only $\beta_H$",
 
     "all_climate":
         r"(c) Climate-driven $\beta_H$",
