@@ -920,7 +920,7 @@ MODEL_LABELS = {
         r"Sigmoid $\beta_H$",
 
     "humidity_only":
-        r"Humidity-dependent $\beta_H$",
+        r"Vapour-pressure-dependent $\beta_H$",
 
     "all_climate":
         r"Climate-driven $\beta_H$",

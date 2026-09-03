@@ -147,7 +147,7 @@ MODELS = [
 MODEL_LABELS = {
     "constant": r"Constant $\beta_H$",
     "sigmoid": r"Sigmoid $\beta_H$",
-    "humidity_only": r"Humidity-dependent $\beta_H$",
+    "humidity_only": r"Vapour-pressure-dependent $\beta_H$",
     "all_climate": r"Climate-driven $\beta_H$",
 }
 
