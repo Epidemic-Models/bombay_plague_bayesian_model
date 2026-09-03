@@ -18,7 +18,7 @@ For each beta_H formulation, it calculates:
        - simulate the expected-death trajectory for each draw;
        - calculate the weekly posterior median and 95% credible interval.
 
-    2. Highest-likelihood trajectory:
+    2. Maximum-likelihood (MLE) trajectory:
        - use the sampled theta with the largest stored log-likelihood.
 
     3. Posterior-median-parameter trajectory:
@@ -163,7 +163,6 @@ WEEK_RULE = "W-FRI"
 # -----------------------------------------------------------------------------
 
 DELAY_KIND = "gamma"
-DELAY_TAU_WEEKS = 2
 DELAY_MAX_WEEKS = 12
 DELAY_SHAPE = 2.0
 DELAY_SCALE = 0.6
@@ -690,20 +689,10 @@ def main():
     # =========================================================================
 
     f_delay = make_delay_pmf_weeks(
-        kind=
-            DELAY_KIND,
-
-        tau_weeks=
-            DELAY_TAU_WEEKS,
-
-        max_weeks=
-            DELAY_MAX_WEEKS,
-
-        shape=
-            DELAY_SHAPE,
-
-        scale=
-            DELAY_SCALE,
+        kind=DELAY_KIND,
+        max_weeks=DELAY_MAX_WEEKS,
+        shape=DELAY_SHAPE,
+        scale=DELAY_SCALE,
     )
 
 
@@ -1042,12 +1031,13 @@ def main():
 
 
         # =====================================================================
-        # 3f. Highest-likelihood trajectory
+        # 3f. Maximum-likelihood (MLE) trajectory
         # =====================================================================
 
         best_idx = int(
             np.nanargmax(
                 logl
+
             )
         )
 
@@ -1393,7 +1383,7 @@ def main():
 
 
         # ---------------------------------------------------------------------
-        # Highest-likelihood trajectory
+        #Maximum-likelihood (MLE) trajectory
         # ---------------------------------------------------------------------
 
         ax.plot(
@@ -1408,7 +1398,7 @@ def main():
             linewidth=
                 1.6,
             label=
-                "Highest-likelihood trajectory",
+                "Maximum-likelihood (MLE) trajectory",
         )
 
 
