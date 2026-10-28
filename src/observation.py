@@ -57,11 +57,12 @@ from scipy.stats import gamma as gamma_dist
 # =============================================================================
 
 def make_delay_pmf_weeks(
-    kind: str = "fixed",
-    tau_weeks: int = 2,
-    max_weeks: int = 12,
-    shape: float = 2.0,
-    scale: float = 1.0,
+        kind: str = "fixed",
+        tau_weeks: int = 2,
+        max_weeks: int = 12,
+        shape: float = 2.0,
+        scale: float = 1.0,
+        shift_weeks: float = 1.0,
 ) -> np.ndarray:
     """
     Build a discrete infection-to-death delay PMF
@@ -100,11 +101,27 @@ def make_delay_pmf_weeks(
             The resulting probabilities are normalized over
             j = 0,...,max_weeks.
 
+        "gamma_shifted"
+            Gamma CDF-bin discretization with a hard lower floor at
+            ``shift_weeks``.
+
+            Intended for sensitivity analysis on the "no death before
+            the person exits the incubation/exposed compartment"
+            assumption: the delay distribution is a Gamma shifted to
+            the right by ``shift_weeks``, so it is impossible to
+            observe a death in any bin before that floor is reached.
+            For bin j, the integrated probability is
+
+                F(j + 1 - shift_weeks) - F(j - shift_weeks),
+
+            where F is the Gamma CDF, clipped at 0 and normalized
+            over j = 0,...,max_weeks.
+
     tau_weeks : int
         Discrete lag used only when ``kind="fixed"``.
 
-        This argument is ignored for ``kind="gamma"`` and
-        ``kind="gamma_cdf"``.
+        This argument is ignored for ``kind="gamma"``,
+        ``kind="gamma_cdf"``, and ``kind="gamma_shifted"``.
 
     max_weeks : int
         Largest discrete lag represented in the delay kernel.
@@ -114,12 +131,20 @@ def make_delay_pmf_weeks(
     shape : float
         Gamma shape parameter.
 
-        Used only for ``kind="gamma"`` and ``kind="gamma_cdf"``.
+        Used only for ``kind="gamma"``, ``kind="gamma_cdf"``, and
+        ``kind="gamma_shifted"``.
 
     scale : float
         Gamma scale parameter, in weeks.
 
-        Used only for ``kind="gamma"`` and ``kind="gamma_cdf"``.
+        Used only for ``kind="gamma"``, ``kind="gamma_cdf"``, and
+        ``kind="gamma_shifted"``.
+
+    shift_weeks : float
+        Rightward shift applied to the Gamma distribution before
+        CDF-binning, in weeks.
+
+        Used only for ``kind="gamma_shifted"``. Ignored otherwise.
 
     Returns
     -------
@@ -135,6 +160,10 @@ def make_delay_pmf_weeks(
     The ``"gamma_cdf"`` option is provided specifically for assessing
     sensitivity to the numerical discretization of the same underlying
     continuous Gamma delay distribution.
+
+    The ``"gamma_shifted"`` option is provided specifically for
+    assessing sensitivity to allowing nonzero death probability before
+    the incubation period has elapsed.
     """
 
     # -------------------------------------------------------------------------
@@ -155,7 +184,6 @@ def make_delay_pmf_weeks(
         dtype=float,
     )
 
-
     # =========================================================================
     # 1. Fixed discrete delay
     # =========================================================================
@@ -167,9 +195,9 @@ def make_delay_pmf_weeks(
         )
 
         if not (
-            0
-            <= tau_weeks
-            <= max_weeks
+                0
+                <= tau_weeks
+                <= max_weeks
         ):
             raise ValueError(
                 "tau_weeks must be within "
@@ -187,7 +215,6 @@ def make_delay_pmf_weeks(
 
         return f
 
-
     # =========================================================================
     # Gamma parameter validation
     # =========================================================================
@@ -195,18 +222,18 @@ def make_delay_pmf_weeks(
     if kind in {
         "gamma",
         "gamma_cdf",
+        "gamma_shifted",
     }:
 
         if (
-            shape <= 0
-            or
-            scale <= 0
+                shape <= 0
+                or
+                scale <= 0
         ):
             raise ValueError(
                 "shape and scale must be > 0 "
                 "for Gamma delay kernels"
             )
-
 
     # =========================================================================
     # 2. ORIGINAL Gamma midpoint discretization
@@ -226,8 +253,8 @@ def make_delay_pmf_weeks(
         # j = 2 -> x = 2.5 weeks
         # etc.
         x = (
-            j
-            + 0.5
+                j
+                + 0.5
         )
 
         # Gamma log-PDF:
@@ -242,17 +269,17 @@ def make_delay_pmf_weeks(
         # This is deliberately kept algebraically identical to the
         # implementation used for the original final_v2 fits.
         logpdf = (
-            (shape - 1.0)
-            * np.log(x)
-            -
-            (x / scale)
-            -
-            (
-                lgamma(shape)
-                +
-                shape
-                * np.log(scale)
-            )
+                (shape - 1.0)
+                * np.log(x)
+                -
+                (x / scale)
+                -
+                (
+                        lgamma(shape)
+                        +
+                        shape
+                        * np.log(scale)
+                )
         )
 
         pdf = np.exp(
@@ -264,9 +291,9 @@ def make_delay_pmf_weeks(
         )
 
         if (
-            total <= 0
-            or
-            not np.isfinite(total)
+                total <= 0
+                or
+                not np.isfinite(total)
         ):
             raise RuntimeError(
                 "Gamma midpoint PMF normalization "
@@ -274,12 +301,11 @@ def make_delay_pmf_weeks(
             )
 
         f = (
-            pdf
-            / total
+                pdf
+                / total
         )
 
         return f
-
 
     # =========================================================================
     # 3. Gamma CDF-bin discretization
@@ -302,8 +328,8 @@ def make_delay_pmf_weeks(
         lower_edges = j
 
         upper_edges = (
-            j
-            + 1.0
+                j
+                + 1.0
         )
 
         cdf_lower = gamma_dist.cdf(
@@ -319,9 +345,9 @@ def make_delay_pmf_weeks(
         )
 
         f = (
-            cdf_upper
-            -
-            cdf_lower
+                cdf_upper
+                -
+                cdf_lower
         )
 
         # Numerical protection against extremely small negative values
@@ -336,9 +362,9 @@ def make_delay_pmf_weeks(
         )
 
         if (
-            total <= 0
-            or
-            not np.isfinite(total)
+                total <= 0
+                or
+                not np.isfinite(total)
         ):
             raise RuntimeError(
                 "Gamma CDF-bin PMF normalization "
@@ -351,12 +377,87 @@ def make_delay_pmf_weeks(
         # probability beyond max_weeks + 1 is excluded and the retained
         # probability is renormalized to sum to one.
         f = (
-            f
-            / total
+                f
+                / total
         )
 
         return f
 
+    # =========================================================================
+    # 4. Gamma CDF-bin discretization, shifted right by shift_weeks
+    #
+    # Sensitivity-analysis alternative.
+    #
+    # Same CDF-bin construction as above, but the underlying Gamma is
+    # shifted right by shift_weeks before binning, so bin j captures
+    #
+    #     P(j <= T + shift_weeks < j+1)
+    #       =
+    #     F(j + 1 - shift_weeks) - F(j - shift_weeks)
+    #
+    # where F is the Gamma CDF. This enforces a hard floor: no mass is
+    # placed at any lag below shift_weeks, by construction.
+    # =========================================================================
+
+    if kind == "gamma_shifted":
+
+        lower_edges = (
+                j
+                - shift_weeks
+        )
+
+        upper_edges = (
+                j
+                + 1.0
+                - shift_weeks
+        )
+
+        cdf_lower = gamma_dist.cdf(
+            lower_edges,
+            a=shape,
+            scale=scale,
+        )
+
+        cdf_upper = gamma_dist.cdf(
+            upper_edges,
+            a=shape,
+            scale=scale,
+        )
+
+        f = (
+                cdf_upper
+                -
+                cdf_lower
+        )
+
+        # Numerical protection against extremely small negative values
+        # caused by floating-point arithmetic.
+        f = np.maximum(
+            f,
+            0.0,
+        )
+
+        total = float(
+            np.sum(f)
+        )
+
+        if (
+                total <= 0
+                or
+                not np.isfinite(total)
+        ):
+            raise RuntimeError(
+                "Gamma shifted-CDF-bin PMF normalization "
+                "failed. Check shape, scale, and shift_weeks."
+            )
+
+        # Normalize over the represented lag range.
+        f = (
+                f
+                / total
+        )
+
+        return f
 
     # =========================================================================
     # Unknown kernel
@@ -364,9 +465,8 @@ def make_delay_pmf_weeks(
 
     raise ValueError(
         f"Unknown kind={kind!r}. "
-        "Use 'fixed', 'gamma', or 'gamma_cdf'."
+        "Use 'fixed', 'gamma', 'gamma_cdf', or 'gamma_shifted'."
     )
-
 
 # =============================================================================
 # Infections -> expected deaths

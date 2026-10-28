@@ -60,15 +60,17 @@ the climate lags.
 HUMAN-ASSOCIATED AMPLIFICATION COMPONENT
 -----------------------------------------
 
-Four alternative formulations of beta_H(t) are implemented. These represent
+Seven alternative formulations of beta_H(t) are implemented. These represent
 competing hypotheses about temporal variation in human-associated
-transmission.
+amplification and include additional single-covariate formulations used for
+sensitivity analyses.
+
 
 1. Constant
 
        beta_H(t) = betaH0
 
-   Human-associated transmission is assumed not to vary through time.
+   Human-associated amplification is assumed not to vary through time.
 
 
 2. Sigmoid
@@ -81,21 +83,50 @@ transmission.
        sigmoid(t; t_star, kappa)
            = 1 / (1 + exp[-kappa * (t - t_star)]).
 
-   This formulation allows human-associated transmission to change
+   This formulation allows human-associated amplification to change
    systematically through epidemic time independently of the climate
    covariates.
 
 
-3. Humidity-only
+3. Vapour-pressure-only ("humidity_only")
 
        beta_H(t) =
            betaH0 * exp(be_H * ze(t))
 
-   Human-associated transmission varies with the standardized
+   Human-associated amplification varies with the standardized
    vapour-pressure covariate only.
 
+   The internal mode name "humidity_only" is retained for compatibility
+   with existing model fits and scripts, but ze represents vapour pressure
+   rather than a generic measure of humidity.
 
-4. All-climate
+
+4. Temperature-only
+
+       beta_H(t) =
+           betaH0 * exp(bT_H * zT(t))
+
+   Human-associated amplification varies with the standardized temperature
+   covariate only.
+
+   This formulation is used as a single-covariate sensitivity analysis.
+   Temperature enters linearly on the log scale, matching its linear
+   contribution to beta_H(t) in the all-climate formulation. No quadratic
+   temperature term is included in this amplification component.
+
+
+5. Rainfall-only
+
+       beta_H(t) =
+           betaH0 * exp(bR_H * zR(t))
+
+   Human-associated amplification varies with the standardized rainfall
+   covariate only.
+
+   This formulation is used as a single-covariate sensitivity analysis.
+
+
+6. All-climate
 
        beta_H(t) =
            betaH0 * exp(
@@ -104,9 +135,26 @@ transmission.
                + bR_H * zR(t)
            )
 
-   Human-associated transmission varies with temperature,
-   vapour pressure, and rainfall.
+   Human-associated amplification varies jointly with temperature,
+   vapour pressure, and rainfall. The corresponding coefficients therefore
+   represent conditional effects given the other climate covariates included
+   in the model.
 
+
+7. All-climate with quadratic temperature ("all_climate_quadT")
+
+       beta_H(t) =
+           betaH0 * exp(
+               bT_H * zT(t)
+               + bTT_H * zT(t)^2
+               + be_H * ze(t)
+               + bR_H * zR(t)
+           )
+
+   Sensitivity formulation: as all-climate, plus a quadratic temperature
+   term so that amplification can peak at an intermediate temperature, in
+   the same way as spillover. With bTT_H <= 0 (see priors.py) the response
+   to temperature is single-peaked; bTT_H = 0 recovers all-climate exactly.
 
 MODEL IMPLEMENTATION
 --------------------
@@ -176,8 +224,11 @@ Supported beta_H modes:
 
     "constant"
     "sigmoid"
-    "humidity_only"
+    "humidity_only"       # vapour-pressure-only formulation
+    "temperature_only"
+    "rainfall_only"
     "all_climate"
+    "all_climate_quadT"   # all_climate + quadratic temperature in beta_H
 """
 
 import numpy as np
@@ -186,7 +237,7 @@ import pandas as pd
 
 def eta_H(t, zT, ze, zR, betaH0, betaH_mode, params):
     """
-    Human-associated transmission contribution on the log scale.
+    Human-associated amplification coefficient on the log scale.
 
     Modes
     -----
@@ -199,9 +250,23 @@ def eta_H(t, zT, ze, zR, betaH0, betaH_mode, params):
     humidity_only:
         beta_H(t) = betaH0 * exp(be_H * ze)
 
+        Despite the internal mode name, ze is the standardized
+        vapour-pressure covariate.
+
+    temperature_only:
+        beta_H(t) = betaH0 * exp(bT_H * zT)
+
+    rainfall_only:
+        beta_H(t) = betaH0 * exp(bR_H * zR)
+
     all_climate:
         beta_H(t) = betaH0 * exp(
             bT_H * zT + be_H * ze + bR_H * zR
+        )
+
+    all_climate_quadT:
+        beta_H(t) = betaH0 * exp(
+            bT_H * zT + bTT_H * zT^2 + be_H * ze + bR_H * zR
         )
     """
 
@@ -220,6 +285,10 @@ def eta_H(t, zT, ze, zR, betaH0, betaH_mode, params):
         be_H = float(params["be_H"])
         return np.log(betaH0) + be_H * ze
 
+    if betaH_mode == "temperature_only":
+        bT_H = float(params["bT_H"])
+        return np.log(betaH0) + bT_H * zT
+
     if betaH_mode == "rainfall_only":
         bR_H = float(params["bR_H"])
         return np.log(betaH0) + bR_H * zR
@@ -230,10 +299,19 @@ def eta_H(t, zT, ze, zR, betaH0, betaH_mode, params):
         bR_H = float(params["bR_H"])
         return np.log(betaH0) + bT_H * zT + be_H * ze + bR_H * zR
 
+    if betaH_mode == "all_climate_quadT":
+        bT_H = float(params["bT_H"])
+        bTT_H = float(params["bTT_H"])
+        be_H = float(params["be_H"])
+        bR_H = float(params["bR_H"])
+        return (np.log(betaH0) + bT_H * zT + bTT_H * zT ** 2
+                + be_H * ze + bR_H * zR)
+
     raise ValueError(
         f"Unknown betaH_mode={betaH_mode!r}. "
         "Use 'constant', 'sigmoid', 'humidity_only', "
-        "or 'all_climate'."
+        "'temperature_only', 'rainfall_only', 'all_climate' "
+        "or 'all_climate_quadT'."
     )
 
 
@@ -378,6 +456,12 @@ def simulate_seir_dde(
                 "Missing parameter 'be_H' for betaH_mode='humidity_only'."
             )
 
+    if betaH_mode == "temperature_only":
+        if "bT_H" not in params:
+            raise ValueError(
+                "Missing parameter 'bT_H' for betaH_mode='temperature_only'."
+            )
+
     if betaH_mode == "rainfall_only":
         if "bR_H" not in params:
             raise ValueError(
@@ -390,6 +474,14 @@ def simulate_seir_dde(
         if missing:
             raise ValueError(
                 f"Missing parameters {missing} for betaH_mode='all_climate'."
+            )
+
+    if betaH_mode == "all_climate_quadT":
+        needed = ["bT_H", "bTT_H", "be_H", "bR_H"]
+        missing = [key for key in needed if key not in params]
+        if missing:
+            raise ValueError(
+                f"Missing parameters {missing} for betaH_mode='all_climate_quadT'."
             )
 
     gamma = float(params["gamma"])

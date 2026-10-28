@@ -2,46 +2,54 @@
 # posterior_analysis.py
 # =============================================================================
 """
-Summarize all saved nested-sampling runs found in
-results/final_model_comparison_v2/nested_sampling/.
+Summarize the nested-sampling runs for all six beta_H formulations.
 
-*** FIXED: this now reads from results/final_model_comparison_v2/, the
-correct final posteriors (betaH0<=3.0 common prior across all four models,
-rslice sampling, seeded live points). The previous version of this script
-read via paths.NESTED_SAMPLING_DIR, which resolves to results/nested_sampling/
--- the FIRST-generation runs, from before even the aR/a0 bound-widening fix.
-Its "Bayesian model comparison" table would have shown the original,
-since-reversed ranking (constant/humidity-only ahead of all-climate).
-If you have an old copy of model_comparison_bayesian.csv or any
-posterior_summary_*.csv generated before this fix, regenerate them. ***
+The four main formulations (constant, single shift / sigmoid, vapour pressure
+only, climate-driven) live in
 
-  1. Per-model, per-parameter posterior summary (weighted mean/median/95% CI),
-     saved to results/final_model_comparison_v2/posterior_summaries/posterior_summary_<betaH_mode>.csv
-  2. A model-comparison table (log Z, delta-log-Z, Bayes factor vs the
-     best-supported model), saved to
-     results/final_model_comparison_v2/model_comparison_bayesian_v2.csv
-  3. An automatic boundary-pinning check based on posterior MASS near each
-     edge, not just where the credible interval happens to land. A wide
-     but genuinely diffuse posterior will have a 95% CI that reaches
-     close to both walls without actually piling up against either one --
-     checking CI-edge proximity alone would falsely flag it. Instead we
-     compare the weighted probability mass in the outer `EDGE_BAND`
-     fraction of the box to the mass a flat (prior-dominated, i.e.
-     "the data told us nothing here") posterior would place there. A
-     ratio well above 1 means real pinning; a ratio near 1 means the
-     posterior is just wide, which is a separate (and much less
-     concerning) thing.
+    results/final_model_comparison_v2/nested_sampling/
 
-     NOTE: as of the final_v2 results, gamma is known to be pinned at its
-     upper bound in the all_climate model (a genuine gamma-betaH0
-     degeneracy, not resolved by further widening -- see
-     run_all_climate_gamma_sensitivity.py and the project README). Expect
-     this script to flag it; that is correct behavior, not a bug.
+and the two single-covariate formulations (rainfall only, temperature only)
+were fitted separately. Each formulation's file path is listed explicitly in
+MODELS below, so nothing is picked up by accident from an older result set.
+
+*** Do NOT point any entry at paths.NESTED_SAMPLING_DIR (results/nested_sampling/).
+That is the first-generation result set, from before the aR/a0 bound-widening
+fix, and its ranking was later reversed. ***
+
+Outputs (results/final_model_comparison_v2/):
+
+  1. Per-model, per-parameter posterior summary (weighted mean/median/95% CI)
+     posterior_summaries/posterior_summary_<betaH_mode>__final_v2.csv
+
+  2. Model-comparison table with log Z, its error, Delta log Z, Bayes factor
+     vs the best model, maximum log-likelihood, AICc and BIC
+     model_comparison_all_formulations.csv
+     model_comparison_all_formulations.tex   (rows ready for the manuscript)
+
+  3. Boundary-pinning check based on posterior MASS near each prior edge.
+     The weighted mass in the outer EDGE_BAND fraction of the prior box is
+     compared with the mass a flat posterior would put there (EDGE_BAND).
+     A ratio well above 1 means real pinning; a ratio near 1 means the
+     posterior is simply wide.
+
+     NOTE: gamma is known to be pinned at its upper bound in the all_climate
+     model (a gamma-betaH0 degeneracy, not resolved by further widening; see
+     run_all_climate_gamma_sensitivity.py). Expect it to be flagged.
+
+AICc and BIC are computed from the maximum log-likelihood stored in each run:
+
+    AIC  = 2k - 2 logL
+    AICc = AIC + 2k(k+1) / (n - k - 1)
+    BIC  = k ln(n) - 2 logL
+
+with k the number of fitted parameters and n the number of fitted weeks.
 
 Usage:
     python scripts/posterior_analysis.py
 """
 from __future__ import annotations
+
 import pickle
 import sys
 from pathlib import Path
@@ -52,23 +60,65 @@ import pandas as pd
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
+import paths  # noqa: E402
+
 FIT_TARGET = "plague_deaths_reported_fit"
 
-# *** final_v2 -- the corrected results directory. Do NOT point this back at
-# paths.NESTED_SAMPLING_DIR (results/nested_sampling/) -- that's the
-# first-generation, most-superseded result set in the project. ***
-RESULT_DIR = PROJECT_ROOT / "results" / "final_model_comparison_v2" / "nested_sampling"
-OUTPUT_ROOT = PROJECT_ROOT / "results" / "final_model_comparison_v2"
+RESULTS_ROOT = PROJECT_ROOT / "results"
+OUTPUT_ROOT = RESULTS_ROOT / "final_model_comparison_v2"
 POSTERIOR_SUMMARY_DIR = OUTPUT_ROOT / "posterior_summaries"
-COMPARISON_CSV = OUTPUT_ROOT / "model_comparison_bayesian_v2.csv"
+COMPARISON_CSV = OUTPUT_ROOT / "model_comparison_all_formulations.csv"
+COMPARISON_TEX = OUTPUT_ROOT / "model_comparison_all_formulations.tex"
 
-# Expected logZ for all_climate, for the sanity check below (from the
-# verified final_v2 run).
+# -----------------------------------------------------------------------------
+# One entry per formulation. Same paths as make_bayesian_model_fits_figure.py.
+# *** EDIT the temperature_only path to match your file. ***
+# -----------------------------------------------------------------------------
+MAIN_DIR = RESULTS_ROOT / "final_model_comparison_v2" / "nested_sampling"
+
+MODELS = {
+    "all_climate": {
+        "label": "Climate-driven",
+        "path": MAIN_DIR / f"all_climate__{FIT_TARGET}__final_v2.pkl",
+    },
+    "humidity_only": {
+        "label": "Vapour pressure only",
+        "path": MAIN_DIR / f"humidity_only__{FIT_TARGET}__final_v2.pkl",
+    },
+    "rainfall_only": {
+        "label": "Rainfall only",
+        "path": RESULTS_ROOT / "rainfall_only_check" / "nested_sampling"
+                / f"rainfall_only__{FIT_TARGET}__check.pkl",
+    },
+    "temperature_only": {
+        "label": "Temperature only",
+        "path": RESULTS_ROOT / "temperature_only_check" / "nested_sampling"
+                / f"temperature_only__{FIT_TARGET}__check.pkl",
+    },
+    "constant": {
+        "label": "Constant",
+        "path": MAIN_DIR / f"constant__{FIT_TARGET}__final_v2.pkl",
+    },
+    "sigmoid": {
+        "label": "Single shift",
+        "path": MAIN_DIR / f"sigmoid__{FIT_TARGET}__final_v2.pkl",
+    },
+}
+
+# If True, formulations whose file is missing are skipped with a warning.
+# Keep False for the final table.
+SKIP_MISSING_MODELS = False
+
+# Expected logZ for all_climate, for the sanity check (verified final_v2 run).
 EXPECTED_ALL_CLIMATE_LOGZ = -813.629
 
-EDGE_BAND = 0.05     # width of the "near the wall" band, as a fraction of the prior box
-PIN_RATIO = 2.0       # flag if observed mass in that band exceeds this multiple of the null (EDGE_BAND)
+EDGE_BAND = 0.05   # width of the "near the wall" band, as a fraction of the prior box
+PIN_RATIO = 2.0    # flag if mass in that band exceeds this multiple of the flat-posterior mass
 
+
+# =============================================================================
+# Helpers
+# =============================================================================
 
 def weighted_quantile(values, weights, q):
     order = np.argsort(values)
@@ -80,23 +130,36 @@ def weighted_quantile(values, weights, q):
 
 def edge_mass_ratio(vals, weights, lo_bound, hi_bound, band=EDGE_BAND):
     """
-    (lower_ratio, upper_ratio): weighted mass in the outer `band` fraction
-    of the box near each edge, divided by `band` itself (the null
-    expectation under a flat/uninformative posterior). >> 1 means the
-    posterior is piling up against that wall.
+    (lower_ratio, upper_ratio): weighted mass in the outer `band` fraction of
+    the prior box near each edge, divided by `band` (the flat-posterior mass).
+    Values well above 1 mean the posterior is piling up against that wall.
     """
     width = hi_bound - lo_bound
     lo_edge = lo_bound + band * width
     hi_edge = hi_bound - band * width
     w = weights / weights.sum()
-    mass_lo = w[vals <= lo_edge].sum()
-    mass_hi = w[vals >= hi_edge].sum()
-    return mass_lo / band, mass_hi / band
+    return w[vals <= lo_edge].sum() / band, w[vals >= hi_edge].sum() / band
 
 
-def summarize_one(pkl_path: Path):
+def information_criteria(max_loglik: float, k: int, n: int) -> tuple[float, float]:
+    """Return (AICc, BIC) from the maximum log-likelihood."""
+    aic = 2 * k - 2 * max_loglik
+    aicc = aic + 2 * k * (k + 1) / (n - k - 1)
+    bic = k * np.log(n) - 2 * max_loglik
+    return aicc, bic
+
+
+def summarize_one(model: str, pkl_path: Path, n_weeks: int):
     with open(pkl_path, "rb") as f:
         d = pickle.load(f)
+
+    stored_mode = d.get("betaH_mode", model)
+    if stored_mode != model:
+        raise ValueError(f"{pkl_path.name}: file says betaH_mode={stored_mode!r}, "
+                         f"but MODELS lists it as {model!r}.")
+    if d.get("fit_target", FIT_TARGET) != FIT_TARGET:
+        raise ValueError(f"{pkl_path.name}: fitted to {d['fit_target']!r}, not {FIT_TARGET!r}. "
+                         "log Z is only comparable across models fitted to the same data.")
 
     results = d["results"]
     samples = results.samples
@@ -110,6 +173,7 @@ def summarize_one(pkl_path: Path):
 
         mean = np.average(vals, weights=weights)
         ci_lo, med, ci_hi = weighted_quantile(vals, weights, [0.025, 0.5, 0.975])
+        p_positive = weights[vals > 0].sum()
 
         ratio_lo, ratio_hi = edge_mass_ratio(vals, weights, lo_bound, hi_bound)
         pinned = ""
@@ -120,109 +184,135 @@ def summarize_one(pkl_path: Path):
 
         rows.append({
             "param": name, "mean": mean, "median": med,
-            "ci_lo": ci_lo, "ci_hi": ci_hi,
+            "ci_lo": ci_lo, "ci_hi": ci_hi, "p_positive": p_positive,
             "prior_lo": lo_bound, "prior_hi": hi_bound,
             "edge_mass_ratio_lower": ratio_lo, "edge_mass_ratio_upper": ratio_hi,
             "pinned_at_boundary": pinned,
         })
-
     param_df = pd.DataFrame(rows)
 
+    k = len(d["param_names"])
+    max_loglik = float(np.max(results.logl))
+    aicc, bic = information_criteria(max_loglik, k, n_weeks)
+
     summary = {
-        "betaH_mode": d["betaH_mode"],
-        "fit_target": d["fit_target"],
-        "k": len(d["param_names"]),
-        "logZ": d["logZ"] if "logZ" in d else results.logz[-1],
-        "logZ_err": d["logZ_error"] if "logZ_error" in d else results.logzerr[-1],
-        "n_params_pinned": (param_df["pinned_at_boundary"] != "").sum(),
+        "betaH_mode": model,
+        "label": MODELS[model]["label"],
+        "source_file": str(pkl_path.relative_to(PROJECT_ROOT)),
+        "k": k,
+        "max_loglik": max_loglik,
+        "logZ": float(d["logZ"]) if "logZ" in d else float(results.logz[-1]),
+        "logZ_err": float(d["logZ_error"]) if "logZ_error" in d else float(results.logzerr[-1]),
+        "AICc": aicc,
+        "BIC": bic,
+        "nlive": d.get("nlive"),
+        "seeded_live_point": d.get("seeded", d.get("manually_seeded_live_point")),
+        "n_params_pinned": int((param_df["pinned_at_boundary"] != "").sum()),
     }
     return summary, param_df
 
 
-def main():
-    print(f"Reading posteriors from:\n{RESULT_DIR}\n")
-
-    pkl_files = sorted(RESULT_DIR.glob(f"*__{FIT_TARGET}__final_v2.pkl"))
-    if not pkl_files:
-        raise SystemExit(
-            f"No final_v2 nested-sampling results found in {RESULT_DIR}. "
-            "Run scripts/run_final_all_models_v2.py first."
+def write_latex_rows(comparison: pd.DataFrame, path: Path) -> None:
+    """Write the tabular body for Table 1 (paste between \\hline lines)."""
+    lines = []
+    for _, r in comparison.iterrows():
+        lines.append(
+            f"{r['label']:<22} & {r['k']:>2d} & ${r['max_loglik']:.2f}$ & "
+            f"${r['logZ']:.2f}$ & {r['delta_logZ']:.2f} & "
+            f"{r['AICc']:.2f} & {r['BIC']:.2f} \\\\"
         )
+    path.write_text("\n".join(lines) + "\n")
 
-    print(f"Found {len(pkl_files)} model results: "
-          f"{[p.name for p in pkl_files]}\n")
+
+# =============================================================================
+# Main
+# =============================================================================
+
+def main():
+    merged_df = pd.read_csv(paths.MERGED_CSV)
+    n_weeks = int(merged_df[FIT_TARGET].notna().sum())
+    print(f"Fitted weeks (n for AICc/BIC): {n_weeks}\n")
+
+    available = []
+    for model, spec in MODELS.items():
+        if spec["path"].exists():
+            available.append(model)
+        elif SKIP_MISSING_MODELS:
+            print(f"[WARNING] Skipping {model!r}: not found at\n  {spec['path']}")
+        else:
+            raise SystemExit(
+                f"Result for {model!r} not found:\n  {spec['path']}\n"
+                "Edit its path in MODELS, or set SKIP_MISSING_MODELS = True."
+            )
 
     POSTERIOR_SUMMARY_DIR.mkdir(parents=True, exist_ok=True)
 
     summaries = []
-    for pkl_path in pkl_files:
-        summary, param_df = summarize_one(pkl_path)
+    for model in available:
+        summary, param_df = summarize_one(model, MODELS[model]["path"], n_weeks)
         summaries.append(summary)
 
-        param_out = POSTERIOR_SUMMARY_DIR / f"posterior_summary_{summary['betaH_mode']}__final_v2.csv"
+        param_out = POSTERIOR_SUMMARY_DIR / f"posterior_summary_{model}__final_v2.csv"
         param_df.to_csv(param_out, index=False)
-        print(f"[OK] Saved: {param_out}")
+        print(f"[OK] {MODELS[model]['label']}: {param_out.name}")
 
         pinned = param_df[param_df["pinned_at_boundary"] != ""]
-        if not pinned.empty:
-            print(f"  NOTE -- {summary['betaH_mode']}: parameter(s) pinned at prior boundary:")
-            for _, row in pinned.iterrows():
-                ratio = row["edge_mass_ratio_lower"] if row["pinned_at_boundary"] == "LOWER" else row["edge_mass_ratio_upper"]
-                extra = ""
-                if summary["betaH_mode"] == "all_climate" and row["param"] == "gamma":
-                    extra = (
-                        "  <-- EXPECTED: known gamma-betaH0 degeneracy, see "
-                        "run_all_climate_gamma_sensitivity.py / README. Do not "
-                        "widen further expecting this to resolve."
-                    )
-                if row["param"] == "psi":
-                    extra = "  <-- check whether psi<=1 is a genuine biological constraint before widening."
-                print(f"    {row['param']}: {ratio:.1f}x more posterior mass near the "
-                      f"{row['pinned_at_boundary'].lower()} wall than a flat posterior would have "
-                      f"(prior [{row['prior_lo']:.4g}, {row['prior_hi']:.4g}]){extra}")
+        for _, row in pinned.iterrows():
+            side = row["pinned_at_boundary"]
+            ratio = row["edge_mass_ratio_lower"] if side == "LOWER" else row["edge_mass_ratio_upper"]
+            extra = ""
+            if model == "all_climate" and row["param"] == "gamma":
+                extra = "  <-- EXPECTED: known gamma-betaH0 degeneracy."
+            if row["param"] == "psi":
+                extra = "  <-- check whether psi<=1 is a genuine constraint before widening."
+            print(f"    pinned: {row['param']} has {ratio:.1f}x the flat-posterior mass near "
+                  f"the {side.lower()} wall (prior [{row['prior_lo']:.4g}, "
+                  f"{row['prior_hi']:.4g}]){extra}")
 
-    comparison = pd.DataFrame(summaries).sort_values("logZ", ascending=False).reset_index(drop=True)
+    comparison = (pd.DataFrame(summaries)
+                  .sort_values("logZ", ascending=False)
+                  .reset_index(drop=True))
 
-    # Sanity check against the known-correct value
-    all_climate_row = comparison[comparison["betaH_mode"] == "all_climate"]
-    if not all_climate_row.empty:
-        actual_logz = all_climate_row["logZ"].iloc[0]
-        if abs(actual_logz - EXPECTED_ALL_CLIMATE_LOGZ) > 1.0:
-            print(
-                f"\n*** WARNING: all_climate logZ = {actual_logz:.3f}, expected approximately "
-                f"{EXPECTED_ALL_CLIMATE_LOGZ:.3f}. This suggests RESULT_DIR is NOT pointing at "
-                f"the verified final_v2 results -- check the path before trusting this table. ***"
-            )
+    # Sanity check against the verified value
+    ac = comparison[comparison["betaH_mode"] == "all_climate"]
+    if not ac.empty:
+        actual = ac["logZ"].iloc[0]
+        if abs(actual - EXPECTED_ALL_CLIMATE_LOGZ) > 1.0:
+            print(f"\n*** WARNING: all_climate logZ = {actual:.3f}, expected about "
+                  f"{EXPECTED_ALL_CLIMATE_LOGZ:.3f}. Check the paths in MODELS. ***")
         else:
-            print(f"\n[OK] all_climate logZ = {actual_logz:.3f}, matches the verified final_v2 value.")
+            print(f"\n[OK] all_climate logZ = {actual:.3f} matches the verified value.")
 
-    if comparison["fit_target"].nunique() > 1:
-        print(
-            "\nWARNING: results for more than one fit_target are present "
-            f"({sorted(comparison['fit_target'].unique())}). log(Z) is only "
-            "comparable across models fit to the SAME data -- comparing across "
-            "different fit_targets here is apples-to-oranges."
-        )
-
-    best_logZ = comparison["logZ"].iloc[0]
-    comparison["delta_logZ"] = best_logZ - comparison["logZ"]
+    best = comparison["logZ"].iloc[0]
+    comparison["delta_logZ"] = best - comparison["logZ"]
     comparison["bayes_factor_vs_best"] = np.exp(-comparison["delta_logZ"])
+    comparison["delta_AICc"] = comparison["AICc"] - comparison["AICc"].min()
+    comparison["delta_BIC"] = comparison["BIC"] - comparison["BIC"].min()
+
+    # Do AICc and BIC agree with the evidence ranking?
+    evidence_order = list(comparison["betaH_mode"])
+    aicc_order = list(comparison.sort_values("AICc")["betaH_mode"])
+    bic_order = list(comparison.sort_values("BIC")["betaH_mode"])
+    agree_best = aicc_order[0] == bic_order[0] == evidence_order[0]
+    agree_full = aicc_order == evidence_order and bic_order == evidence_order
 
     comparison.to_csv(COMPARISON_CSV, index=False)
+    write_latex_rows(comparison, COMPARISON_TEX)
 
-    print("\n=== Bayesian model comparison (final_v2) ===")
-    print(comparison.to_string(index=False))
-    if (comparison["n_params_pinned"] > 0).any():
-        print(
-            "\nNOTE: one or more models have parameters pinned at a prior boundary "
-            "(see notes above). For all_climate's gamma, this is a known, investigated "
-            "structural degeneracy with betaH0 (not a truncation artifact -- widening "
-            "gamma's bound further does not resolve it; see "
-            "check_spillover_reseeding_robustness.py for why this doesn't undermine the "
-            "main scientific conclusions). For psi, confirm whether the psi<=1 bound is a "
-            "genuine biological constraint before treating pinning there as a problem."
-        )
+    cols = ["label", "k", "max_loglik", "logZ", "logZ_err", "delta_logZ",
+            "AICc", "delta_AICc", "BIC", "delta_BIC", "n_params_pinned"]
+    print("\n=== Model comparison, all formulations (ordered by log Z) ===")
+    print(comparison[cols].to_string(index=False, float_format=lambda x: f"{x:.2f}"))
+
+    print(f"\nSame best model under log Z, AICc and BIC: {agree_best}")
+    print(f"Same full ranking under log Z, AICc and BIC: {agree_full}")
+    if not agree_full:
+        print(f"  log Z order: {evidence_order}")
+        print(f"  AICc order:  {aicc_order}")
+        print(f"  BIC order:   {bic_order}")
+
     print(f"\n[OK] Saved: {COMPARISON_CSV}")
+    print(f"[OK] Saved: {COMPARISON_TEX}  (rows for Table 1)")
 
 
 if __name__ == "__main__":

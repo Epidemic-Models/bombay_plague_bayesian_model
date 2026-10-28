@@ -21,16 +21,24 @@ For kind="gamma", make_delay_pmf_weeks() evaluates the Gamma density at
 weekly midpoints (j + 0.5) and normalizes those weights over the discrete
 lags j = 0,...,12.
 
-No additional two-week shift is applied.
-
 The plotted discrete probabilities are generated with the exact same
 make_delay_pmf_weeks() function used by the Bayesian likelihood.
 
-Because the observation model applies the kernel through
+The observation model applies the kernel through
 
-    mu_D[w] = psi * sum_j C_week[w-j] * f_delay[j],
+    mu_D[w] = psi * sum_j C_week[w-j] * f_delay[j].
 
-f_delay[j] is operationally associated with a discrete lag of j weeks.
+Accordingly, f_delay[j] is attached operationally to convolution lag index
+j, while the underlying Gamma density used to construct that weight is
+evaluated at the midpoint j + 0.5 weeks.
+
+For interpretation, this script therefore distinguishes:
+
+    1. The integer convolution lag index j.
+    2. The midpoint-based delay j + 0.5 used to construct the Gamma weight.
+
+The midpoint-weighted mean is the more interpretable summary of the
+infection-to-death delay represented by this discretized Gamma kernel.
 
 Outputs
 -------
@@ -143,12 +151,20 @@ f_delay = np.asarray(
 
 
 # =============================================================================
-# Discrete model-lag grid
+# Discrete lag-index grid and midpoint grid
 # =============================================================================
 
+# Integer lag indices used by the weekly convolution.
 lags = np.arange(
     len(f_delay),
     dtype=float,
+)
+
+# Midpoints at which the continuous Gamma density is evaluated to construct
+# the discrete weights.
+midpoints = (
+    lags
+    + 0.5
 )
 
 
@@ -186,29 +202,36 @@ if not np.isclose(
 
 
 # =============================================================================
-# Effective discrete-lag statistics
+# Integer convolution-lag statistics
+#
+# These summarize the indices j used operationally in
+#
+#     mu_D[w] = psi * sum_j C_week[w-j] * f_delay[j]
+#
+# They are retained as diagnostics, but should not be interpreted directly
+# as the mean biological infection-to-death delay.
 # =============================================================================
 
-mean_effective_lag = float(
+mean_lag_index = float(
     np.sum(
         lags
         * f_delay
     )
 )
 
-variance_effective_lag = float(
+variance_lag_index = float(
     np.sum(
         (
             lags
-            - mean_effective_lag
+            - mean_lag_index
         ) ** 2
         * f_delay
     )
 )
 
-sd_effective_lag = float(
+sd_lag_index = float(
     np.sqrt(
-        variance_effective_lag
+        variance_lag_index
     )
 )
 
@@ -216,7 +239,7 @@ cdf = np.cumsum(
     f_delay
 )
 
-median_effective_lag = float(
+median_lag_index = float(
     lags[
         np.searchsorted(
             cdf,
@@ -225,7 +248,7 @@ median_effective_lag = float(
     ]
 )
 
-q025_effective_lag = float(
+q025_lag_index = float(
     lags[
         np.searchsorted(
             cdf,
@@ -234,8 +257,69 @@ q025_effective_lag = float(
     ]
 )
 
-q975_effective_lag = float(
+q975_lag_index = float(
     lags[
+        np.searchsorted(
+            cdf,
+            0.975,
+        )
+    ]
+)
+
+
+# =============================================================================
+# Midpoint-based delay statistics
+#
+# These summarize the actual midpoint locations j + 0.5 weeks at which the
+# Gamma density was evaluated to construct each discrete weight.
+#
+# This is the more interpretable summary of the infection-to-death delay
+# represented by the discretized Gamma kernel.
+# =============================================================================
+
+mean_midpoint_delay = float(
+    np.sum(
+        midpoints
+        * f_delay
+    )
+)
+
+variance_midpoint_delay = float(
+    np.sum(
+        (
+            midpoints
+            - mean_midpoint_delay
+        ) ** 2
+        * f_delay
+    )
+)
+
+sd_midpoint_delay = float(
+    np.sqrt(
+        variance_midpoint_delay
+    )
+)
+
+median_midpoint_delay = float(
+    midpoints[
+        np.searchsorted(
+            cdf,
+            0.50,
+        )
+    ]
+)
+
+q025_midpoint_delay = float(
+    midpoints[
+        np.searchsorted(
+            cdf,
+            0.025,
+        )
+    ]
+)
+
+q975_midpoint_delay = float(
+    midpoints[
         np.searchsorted(
             cdf,
             0.975,
@@ -248,10 +332,10 @@ q975_effective_lag = float(
 # Continuous Gamma distribution for reference
 #
 # IMPORTANT:
-# This curve is shown only to illustrate the continuous Gamma shape from
-# which the model's weekly weights are constructed.
+# This curve is shown only to illustrate the underlying continuous Gamma
+# shape from which the model's discrete weekly weights are constructed.
 #
-# The fitted model itself uses the discrete PMF above.
+# The fitted Bayesian likelihood itself uses f_delay above.
 # =============================================================================
 
 x = np.linspace(
@@ -276,14 +360,9 @@ continuous_pdf = (
     )
 )
 
-
-# =============================================================================
-# Weekly midpoint locations used to CONSTRUCT the discrete Gamma weights
-# =============================================================================
-
-midpoints = (
-    lags
-    + 0.5
+continuous_mean = (
+    DELAY_SHAPE
+    * DELAY_SCALE
 )
 
 
@@ -305,25 +384,23 @@ print(
 )
 
 print(
-    f"\nDelay kind: {DELAY_KIND}"
+    f"\nDelay kind: "
+    f"{DELAY_KIND}"
 )
 
 print(
-    f"Gamma shape: {DELAY_SHAPE}"
+    f"Gamma shape: "
+    f"{DELAY_SHAPE}"
 )
 
 print(
-    f"Gamma scale: {DELAY_SCALE} weeks"
+    f"Gamma scale: "
+    f"{DELAY_SCALE} weeks"
 )
 
 print(
-    f"Maximum discrete lag represented: "
-    f"{int(lags[-1])} weeks"
-)
-
-print(
-    "\nNo additional tau_weeks shift is used "
-    "for the gamma kernel."
+    f"Maximum discrete lag index represented: "
+    f"{int(lags[-1])}"
 )
 
 print(
@@ -331,39 +408,87 @@ print(
     f"{pmf_sum:.12f}"
 )
 
+
+# -----------------------------------------------------------------------------
+# Midpoint-based interpretation
+# -----------------------------------------------------------------------------
+
 print(
-    "\nEffective discrete lag statistics "
-    "(as used in the weekly convolution):"
+    "\nMidpoint-based delay summary:"
 )
 
 print(
-    f"  Mean effective lag: "
-    f"{mean_effective_lag:.3f} weeks"
+    f"  Mean midpoint-based delay: "
+    f"{mean_midpoint_delay:.3f} weeks"
 )
 
 print(
-    f"  Median effective lag: "
-    f"{median_effective_lag:g} weeks"
+    f"  Median midpoint-based delay: "
+    f"{median_midpoint_delay:.3f} weeks"
 )
 
 print(
-    f"  SD effective lag: "
-    f"{sd_effective_lag:.3f} weeks"
+    f"  SD midpoint-based delay: "
+    f"{sd_midpoint_delay:.3f} weeks"
 )
 
 print(
-    f"  Central 95% probability interval: "
-    f"{q025_effective_lag:g}–"
-    f"{q975_effective_lag:g} weeks"
+    f"  Central 95% midpoint interval: "
+    f"{q025_midpoint_delay:.3f}–"
+    f"{q975_midpoint_delay:.3f} weeks"
 )
+
+
+# -----------------------------------------------------------------------------
+# Integer convolution-index diagnostics
+# -----------------------------------------------------------------------------
+
+print(
+    "\nOperational convolution-index summary:"
+)
+
+print(
+    f"  Mean lag index: "
+    f"{mean_lag_index:.3f}"
+)
+
+print(
+    f"  Median lag index: "
+    f"{median_lag_index:g}"
+)
+
+print(
+    f"  SD lag index: "
+    f"{sd_lag_index:.3f}"
+)
+
+print(
+    f"  Central 95% lag-index interval: "
+    f"{q025_lag_index:g}–"
+    f"{q975_lag_index:g}"
+)
+
+
+# -----------------------------------------------------------------------------
+# Continuous Gamma reference
+# -----------------------------------------------------------------------------
 
 print(
     "\nContinuous Gamma reference:"
 )
 
 print(
-    f"  Continuous Gamma mean = "
-    f"{DELAY_SHAPE * DELAY_SCALE:.3f} weeks"
+    f"  Continuous Gamma mean: "
+    f"{continuous_mean:.3f} weeks"
+)
+
+print(
+    "\nDifference between continuous mean "
+    "and midpoint-weighted discrete mean:"
+)
+
+print(
+    f"  {continuous_mean - mean_midpoint_delay:.3f} weeks"
 )
 
 
@@ -371,24 +496,37 @@ print(
 # Plot
 # =============================================================================
 
-fig, ax = plt.subplots(figsize=(9.5, 5.8))
+fig, ax = plt.subplots(
+    figsize=(
+        9.5,
+        5.8,
+    )
+)
 
-# Continuous Gamma density -- reference only
+
+# -----------------------------------------------------------------------------
+# Continuous Gamma density
+# -----------------------------------------------------------------------------
+
 ax.plot(
     x,
     continuous_pdf,
     linestyle="-",
     linewidth=2.0,
-    label="Continuous Gamma density (reference only)",
+    label="Underlying continuous Gamma density",
 )
 
-# Exact discrete probabilities used by the likelihood
+
+# -----------------------------------------------------------------------------
+# Exact discrete probabilities used by the Bayesian likelihood
+# -----------------------------------------------------------------------------
+
 ax.bar(
     lags,
     f_delay,
     width=0.65,
     alpha=0.55,
-    label="Discrete lag probabilities used in likelihood",
+    label="Discrete weekly weights used in likelihood",
 )
 
 ax.plot(
@@ -399,26 +537,79 @@ ax.plot(
     linewidth=1.4,
 )
 
-# Effective mean lag of the discrete convolution kernel
-ax.axvline(
-    mean_effective_lag,
-    linestyle="--",
-    linewidth=1.4,
-    label=f"Mean effective lag = {mean_effective_lag:.2f} weeks",
+
+# -----------------------------------------------------------------------------
+# Show midpoint locations used to construct the discrete weights
+# -----------------------------------------------------------------------------
+
+ax.scatter(
+    midpoints,
+    np.zeros_like(
+        midpoints
+    ),
+    marker="|",
+    s=90,
+    alpha=0.55,
+    label="Gamma evaluation midpoints",
 )
 
-ax.set_xlabel("Discrete infection-to-death lag (weeks)")
-ax.set_ylabel("Probability / density")
+
+# -----------------------------------------------------------------------------
+# Mean midpoint-based delay
+# -----------------------------------------------------------------------------
+
+ax.axvline(
+    mean_midpoint_delay,
+    linestyle="--",
+    linewidth=1.4,
+    label=(
+        f"Mean midpoint-based delay = "
+        f"{mean_midpoint_delay:.2f} weeks"
+    ),
+)
+
+
+# =============================================================================
+# Labels
+# =============================================================================
+
+ax.set_xlabel(
+    "Weekly infection-to-death lag interval"
+)
+
+ax.set_ylabel(
+    "Probability / density"
+)
 
 ax.set_title(
     "Infection-to-death delay kernel used in the Bayesian observation model"
 )
 
-ax.set_xlim(-0.5, DELAY_MAX_WEEKS + 0.5)
-ax.set_xticks(np.arange(0, DELAY_MAX_WEEKS + 1, 1))
+ax.set_xlim(
+    -0.5,
+    DELAY_MAX_WEEKS
+    + 0.5,
+)
 
-ax.spines["top"].set_visible(False)
-ax.spines["right"].set_visible(False)
+ax.set_xticks(
+    np.arange(
+        0,
+        DELAY_MAX_WEEKS + 1,
+        1,
+    )
+)
+
+ax.spines[
+    "top"
+].set_visible(
+    False
+)
+
+ax.spines[
+    "right"
+].set_visible(
+    False
+)
 
 ax.grid(
     axis="y",
@@ -426,7 +617,14 @@ ax.grid(
     linewidth=0.6,
 )
 
-ax.legend(frameon=False)
+ax.legend(
+    frameon=False,
+)
+
+
+# =============================================================================
+# Save
+# =============================================================================
 
 fig.tight_layout()
 
@@ -441,7 +639,12 @@ fig.savefig(
     bbox_inches="tight",
 )
 
-plt.close(fig)
+plt.show()
+
+plt.close(
+    fig
+)
+
 
 # =============================================================================
 # Report

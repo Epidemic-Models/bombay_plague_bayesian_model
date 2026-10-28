@@ -3,10 +3,22 @@
 # =============================================================================
 """
 Posterior decomposition of the force of infection into reservoir-associated
-spillover (beta_R) and human-associated amplification (beta_H * I / N)
-for the FOUR final Bayesian model-comparison runs.
+spillover (beta_R) and amplification (beta_H * I / N) for the SEVEN
+formulations of beta_H in the model comparison.
 
-This script reads the final_v2 posterior results and does NOT refit anything.
+This script reads the saved posterior results and does NOT refit anything.
+
+Seven formulations
+------------------
+The four original formulations (constant, sigmoid, vapour pressure only,
+climate with linear temperature) keep exactly the random seeds they had
+before, so their outputs -- including main-text Fig. 2 -- are unchanged.
+The three added formulations (rainfall only, temperature only, climate with
+a temperature peak) get new seeds of their own (SEED_INDEX).
+
+The script also reports the share of the cumulative force of infection
+carried by amplification (sum over weeks of beta_H I/N divided by the sum of
+lambda, computed within each draw), the quantity quoted in the SI text.
 
 For each beta_H formulation:
 
@@ -64,8 +76,8 @@ Two stochastic steps occur downstream of the fitted posterior:
     1. equal-weight resampling of dynesty's weighted posterior;
     2. selection of N_POSTERIOR_DRAWS from that equal-weight posterior.
 
-Both are explicitly seeded, with a model-specific offset so each of the
-four beta_H formulations gets its own deterministic-but-distinct seed.
+Both are explicitly seeded, with a model-specific offset (SEED_INDEX) so
+each formulation gets its own deterministic-but-distinct seed.
 
 The exact selected parameter vectors are also written to CSV, so the
 published analysis can later be reproduced without relying on the internal
@@ -93,6 +105,7 @@ results/final_figures/transmission_dynamics/
     selected_transmission_dynamics_draws_<betaH_mode>.csv
 
     posterior_human_R0_summary.csv
+    amplification_share_summary.csv
 
     posterior_transmission_dynamics_grid.png
     posterior_transmission_dynamics_grid.pdf
@@ -137,22 +150,46 @@ from mechanistic_model import simulate_seir_dde  # noqa: E402
 
 FIT_TARGET = "plague_deaths_reported_fit"
 
-MODELS = [
-    "constant",
-    "sigmoid",
-    "humidity_only",
-    "all_climate",
-]
+RESULTS_ROOT = PROJECT_ROOT / "results"
+FINAL_NESTED_DIR = RESULTS_ROOT / "final_model_comparison_v2" / "nested_sampling"
 
-MODEL_LABELS = {
-    "constant": r"Constant $\beta_H$",
-    "sigmoid": r"Sigmoid $\beta_H$",
-    "humidity_only": r"Vapour-pressure-dependent $\beta_H$",
-    "all_climate": r"Climate-driven $\beta_H$",
+# Where each formulation's posterior is stored.
+MODEL_PATHS = {
+    "constant": FINAL_NESTED_DIR / f"constant__{FIT_TARGET}__final_v2.pkl",
+    "sigmoid": FINAL_NESTED_DIR / f"sigmoid__{FIT_TARGET}__final_v2.pkl",
+    "humidity_only": FINAL_NESTED_DIR / f"humidity_only__{FIT_TARGET}__final_v2.pkl",
+    "all_climate": FINAL_NESTED_DIR / f"all_climate__{FIT_TARGET}__final_v2.pkl",
+    "rainfall_only": (RESULTS_ROOT / "rainfall_only_check" / "nested_sampling"
+                      / f"rainfall_only__{FIT_TARGET}__seeded.pkl"),
+    "temperature_only": (RESULTS_ROOT / "temperature_only_check" / "nested_sampling"
+                         / f"temperature_only__{FIT_TARGET}__seeded.pkl"),
+    "all_climate_quadT": (RESULTS_ROOT / "all_climate_quadT_check" / "nested_sampling"
+                          / f"all_climate_quadT__{FIT_TARGET}__seeded.pkl"),
 }
 
-FINAL_ROOT = PROJECT_ROOT / "results" / "final_model_comparison_v2"
-FINAL_NESTED_DIR = FINAL_ROOT / "nested_sampling"
+# Seed offsets. The first four are the original positions and must not
+# change, so their draws (and main-text Fig. 2) stay exactly reproducible.
+SEED_INDEX = {
+    "constant": 0,
+    "sigmoid": 1,
+    "humidity_only": 2,
+    "all_climate": 3,
+    "rainfall_only": 4,
+    "temperature_only": 5,
+    "all_climate_quadT": 6,
+}
+
+MODELS = list(MODEL_PATHS)
+
+MODEL_LABELS = {
+    "constant": "Constant",
+    "sigmoid": "Single shift",
+    "humidity_only": "Vapour pressure only",
+    "rainfall_only": "Rainfall only",
+    "temperature_only": "Temperature only",
+    "all_climate": "Climate, linear temperature",
+    "all_climate_quadT": "Climate, temperature peak",
+}
 
 OUTPUT_DIR = PROJECT_ROOT / "results" / "final_figures" / "transmission_dynamics"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -214,18 +251,15 @@ COLOR_TOTAL = "#2C7C2C"
 # =============================================================================
 
 def load_final_result(betaH_mode: str) -> dict:
-    """Load one final_v2 nested-sampling posterior result."""
+    """Load one formulation's nested-sampling posterior result."""
 
-    pkl_path = (
-        FINAL_NESTED_DIR
-        / f"{betaH_mode}__{FIT_TARGET}__final_v2.pkl"
-    )
+    pkl_path = MODEL_PATHS[betaH_mode]
 
     if not pkl_path.exists():
         raise FileNotFoundError(
-            f"Could not find final_v2 result for {betaH_mode!r}:\n"
+            f"Could not find the posterior for {betaH_mode!r}:\n"
             f"{pkl_path}\n\n"
-            "Run scripts/run_final_all_models_v2.py first."
+            "Check the path in MODEL_PATHS."
         )
 
     with open(pkl_path, "rb") as f:
@@ -428,8 +462,11 @@ def main():
 
     all_model_summaries: dict[str, pd.DataFrame] = {}
     r0_summary_rows = []
+    share_rows = []
+    logz_by_model: dict[str, float] = {}
 
-    for model_index, betaH_mode in enumerate(MODELS):
+    for betaH_mode in MODELS:
+        model_index = SEED_INDEX[betaH_mode]
 
         print("\n" + "-" * 80)
         print(f"MODEL: {betaH_mode}")
@@ -441,6 +478,7 @@ def main():
 
         saved = load_final_result(betaH_mode)
         param_names = list(saved["param_names"])
+        logz_by_model[betaH_mode] = float(saved["results"].logz[-1])
 
         # Model-specific deterministic seed for equal-weight resampling.
         resample_seed = RANDOM_SEED + 100 * model_index
@@ -550,6 +588,23 @@ def main():
         validate_array("r0_draws", r0_draws, check_nonnegative=True)
 
         # =====================================================================
+        # 2f'. Share of the cumulative force of infection carried by
+        #      amplification, computed within each draw
+        # =====================================================================
+
+        share = 100.0 * amplification_draws.sum(axis=1) / total_draws.sum(axis=1)
+        share_rows.append({
+            "betaH_mode": betaH_mode,
+            "label": MODEL_LABELS[betaH_mode],
+            "amplification_share_median_pct": float(np.median(share)),
+            "amplification_share_q025_pct": float(np.quantile(share, 0.025)),
+            "amplification_share_q975_pct": float(np.quantile(share, 0.975)),
+        })
+        print(f"  Amplification share of cumulative force of infection: "
+              f"{np.median(share):.1f}% (95% CrI {np.quantile(share, 0.025):.1f}-"
+              f"{np.quantile(share, 0.975):.1f}%)")
+
+        # =====================================================================
         # 2g. Posterior weekly summaries
         # =====================================================================
 
@@ -639,13 +694,34 @@ def main():
     print(r0_summary_df.to_string(index=False))
     print(f"\n[OK] Saved:\n  {r0_csv}")
 
+    share_df = pd.DataFrame(share_rows)
+    share_df["logZ"] = share_df["betaH_mode"].map(logz_by_model)
+    share_df = share_df.sort_values("logZ", ascending=False)
+    share_csv = OUTPUT_DIR / "amplification_share_summary.csv"
+    share_df.to_csv(share_csv, index=False)
+
+    print("\n" + "=" * 100)
+    print("SHARE OF CUMULATIVE FORCE OF INFECTION CARRIED BY AMPLIFICATION")
+    print("=" * 100)
+    for _, r in share_df.iterrows():
+        print(f"  {r['label']:<28} {r['amplification_share_median_pct']:5.1f}% "
+              f"(95% CrI {r['amplification_share_q025_pct']:.1f}-"
+              f"{r['amplification_share_q975_pct']:.1f}%)")
+    print(f"\n[OK] Saved:\n  {share_csv}")
+
     # =========================================================================
-    # 4. Figure 1: 2x2 posterior decomposition grid
+    # 4. Figure 1: posterior decomposition grid, one panel per formulation,
+    #    ordered by log-evidence (same order as main-text Table 1)
     # =========================================================================
 
-    fig, axes = plt.subplots(2, 2, figsize=(12, 8), sharex=True)
+    grid_order = sorted(MODELS, key=lambda m: logz_by_model[m], reverse=True)
+    n_cols = 2
+    n_rows = int(np.ceil(len(grid_order) / n_cols))
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(12, 3.0 * n_rows),
+                             sharex=True, squeeze=False)
+    panel_letters = "ABCDEFGH"
 
-    for ax, betaH_mode in zip(axes.flat, MODELS):
+    for k, (ax, betaH_mode) in enumerate(zip(axes.flat, grid_order)):
 
         df = all_model_summaries[betaH_mode]
 
@@ -657,10 +733,10 @@ def main():
         ax.plot(
             df["week_ending"], df["spillover_median"],
             color=COLOR_SPILLOVER, linewidth=1.6,
-            label=r"Reservoir-associated spillover $\beta_R(t)$",
+            label=r"Spillover, $\beta_R(t)$",
         )
 
-        # Human-associated amplification
+        # Amplification
         ax.fill_between(
             df["week_ending"], df["human_q025"], df["human_q975"],
             color=COLOR_AMPLIFICATION, alpha=0.25, linewidth=0,
@@ -668,28 +744,36 @@ def main():
         ax.plot(
             df["week_ending"], df["human_median"],
             color=COLOR_AMPLIFICATION, linewidth=1.6,
-            label=r"Human-associated amplification $\beta_H(t)I(t)/N$",
+            label=r"Amplification, $\beta_H(t)I(t)/N$",
         )
 
         # Total FOI
         ax.plot(
             df["week_ending"], df["total_median"],
             color=COLOR_TOTAL, linewidth=1.4, linestyle="--",
-            label=r"Total $\lambda(t)$",
+            label=r"Total force of infection, $\lambda(t)$",
         )
 
-        ax.set_title(MODEL_LABELS[betaH_mode])
-        ax.set_ylabel(r"Force of infection (week$^{-1}$)")
+        ax.set_title(f"({panel_letters[k]}) {MODEL_LABELS[betaH_mode]}", loc="left")
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         ax.xaxis.set_major_locator(mdates.MonthLocator(interval=6))
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
         ax.grid(False)
 
+    for ax in axes[:, 0]:
+        ax.set_ylabel(r"Force of infection (week$^{-1}$)")
+    for ax in axes.flat[len(grid_order):]:
+        ax.set_visible(False)
+    # A panel with an empty slot below it needs its own date labels.
+    for k in range(len(grid_order)):
+        if k + n_cols >= len(grid_order):
+            axes.flat[k].tick_params(axis="x", labelbottom=True)
+
     handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(
         handles, labels, loc="upper center", ncol=3, frameon=False,
-        bbox_to_anchor=(0.5, 1.03),
+        bbox_to_anchor=(0.5, 1.02),
     )
 
     fig.tight_layout()
@@ -720,10 +804,10 @@ def main():
     ax1.plot(
         df["week_ending"], df["spillover_median"],
         color=COLOR_SPILLOVER, linewidth=2.0,
-        label=r"Reservoir-associated spillover $\beta_R(t)$ (95% CrI)",
+        label=r"Spillover, $\beta_R(t)$ (95% CrI)",
     )
 
-    # Human-associated amplification
+    # Amplification
     ax1.fill_between(
         df["week_ending"], df["human_q025"], df["human_q975"],
         color=COLOR_AMPLIFICATION, alpha=0.25, linewidth=0,
@@ -731,14 +815,14 @@ def main():
     ax1.plot(
         df["week_ending"], df["human_median"],
         color=COLOR_AMPLIFICATION, linewidth=2.0,
-        label=r"Human-associated amplification $\beta_H(t)I(t)/N$ (95% CrI)",
+        label=r"Amplification, $\beta_H(t)I(t)/N$ (95% CrI)",
     )
 
     # Total force of infection
     ax1.plot(
         df["week_ending"], df["total_median"],
         color=COLOR_TOTAL, linewidth=1.6, linestyle="--",
-        label=r"Total $\lambda(t)$",
+        label=r"Total force of infection, $\lambda(t)$",
     )
 
     ax1.set_ylabel(r"Force of infection (week$^{-1}$)")
@@ -764,10 +848,6 @@ def main():
     lines2, labels2 = ax2.get_legend_handles_labels()
     ax1.legend(lines1 + lines2, labels1 + labels2, frameon=False, loc="upper left")
 
-    ax1.set_title(
-        "Posterior decomposition of the force of infection "
-        "— climate-driven amplification model"
-    )
 
     fig.tight_layout()
 

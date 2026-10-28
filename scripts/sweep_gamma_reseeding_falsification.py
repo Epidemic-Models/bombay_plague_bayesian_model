@@ -70,10 +70,16 @@ results/final_figures/spillover_reseeding_check/
     gamma_falsification_sweep.csv
     gamma_falsification_sweep.png
     gamma_falsification_sweep.pdf
+    gamma_falsification_sweep_table.tex   (SI table, printed as well)
 
 Usage
 -----
-    python scripts/sweep_gamma_reseeding_falsification.py
+    python scripts/sweep_gamma_reseeding_falsification.py            # run sweep + figure
+    python scripts/sweep_gamma_reseeding_falsification.py --replot   # redraw from saved CSV
+
+The figure shows the gamma axis on a log scale (the sweep spans 0.02-3.00
+per week), with the infectious period in days on the top axis, and shades the
+95% posterior credible interval of gamma under the main model.
 """
 
 from __future__ import annotations
@@ -151,6 +157,12 @@ LITERATURE_ANCHORS = {
 }
 
 ROBUSTNESS_THRESHOLD_PCT = 10.0
+
+# 95% posterior credible interval of gamma under the main model (all_climate,
+# final_v2; weighted quantiles, as printed by compare_widened_gamma_coefficients.py).
+GAMMA_POSTERIOR_CI = (1.297, 2.977)
+
+REPLOT_ONLY = "--replot" in sys.argv
 
 OUTPUT_DIR = PROJECT_ROOT / "results" / "final_figures" / "spillover_reseeding_check"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -273,8 +285,10 @@ def weekly_mean(sim: pd.DataFrame, col: str) -> np.ndarray:
 # Run sweep
 # =============================================================================
 
+csv_path = OUTPUT_DIR / "gamma_falsification_sweep.csv"
+
 rows = []
-for gamma in GAMMA_GRID:
+for gamma in ([] if REPLOT_ONLY else GAMMA_GRID):
     sim = simulate_for_gamma(gamma)
     human_traj = weekly_mean(sim, "human_force")
 
@@ -307,11 +321,15 @@ for gamma in GAMMA_GRID:
         f"worst={worst_frac*100:6.2f}% of peak{flag}"
     )
 
-sweep_df = pd.DataFrame(rows)
-
-csv_path = OUTPUT_DIR / "gamma_falsification_sweep.csv"
-sweep_df.to_csv(csv_path, index=False)
-print(f"\n[OK] Saved: {csv_path}")
+if REPLOT_ONLY:
+    if not csv_path.exists():
+        raise FileNotFoundError(f"--replot needs the saved sweep:\n{csv_path}")
+    sweep_df = pd.read_csv(csv_path)
+    print(f"[--replot] Read the saved sweep from {csv_path}")
+else:
+    sweep_df = pd.DataFrame(rows)
+    sweep_df.to_csv(csv_path, index=False)
+    print(f"\n[OK] Saved: {csv_path}")
 
 
 # =============================================================================
@@ -350,7 +368,7 @@ else:
         f"  (infectious period >= ~{breakdown_days:.0f} days), first at {which_trough}.\n\n"
         f"  This CONFIRMS the spillover-reseeding result is a genuine, falsifiable finding:\n"
         f"  there exists a parameter regime (gamma <~ {breakdown_gamma:.2f}/week) where the model\n"
-        f"  WOULD let human transmission alone bridge inter-wave troughs -- but the earlier\n"
+        f"  WOULD let amplification alone bridge inter-wave troughs -- but the earlier\n"
         f"  robustness check showed the data-supported posterior (lower/upper quartiles) never\n"
         f"  enters that regime. The result is informative precisely because it could have\n"
         f"  failed, and didn't, for any gamma the data actually support."
@@ -366,34 +384,53 @@ else:
 # Figure
 # =============================================================================
 
-fig, ax = plt.subplots(figsize=(8, 5))
+fig, ax = plt.subplots(figsize=(7.5, 4.5))
+
+# 95% posterior credible interval of gamma (main model)
+ax.axvspan(*GAMMA_POSTERIOR_CI, color="#1f77b4", alpha=0.12, linewidth=0, zorder=1,
+           label=r"95% posterior interval of $\gamma$")
 
 ax.plot(sweep_df["gamma"], sweep_df["trough1_pct_of_peak"], marker="o",
-        color="#1f77b4", linewidth=1.5, markersize=5, zorder=3,
-        label="Trough 1 (1897-07-23)")
+        color="#1f77b4", linewidth=1.5, markersize=4.5, zorder=3,
+        label="Trough 1 (23 July 1897)")
 ax.plot(sweep_df["gamma"], sweep_df["trough2_pct_of_peak"], marker="s",
-        color="#B3222B", linewidth=1.5, markersize=5, zorder=3,
-        label="Trough 2 (1898-06-24)")
+        color="#B3222B", linewidth=1.5, markersize=4.5, zorder=3,
+        label="Trough 2 (24 June 1898)")
 
-ax.axhline(ROBUSTNESS_THRESHOLD_PCT, linestyle="--", color="gray",
-           label=f"{ROBUSTNESS_THRESHOLD_PCT:.0f}% robustness threshold", zorder=2)
+ax.axhline(ROBUSTNESS_THRESHOLD_PCT, linestyle="--", color="gray", linewidth=1.0,
+           label=f"{ROBUSTNESS_THRESHOLD_PCT:.0f}% reference threshold", zorder=2)
 
-# Shade the data-supported posterior range (lower/upper quartiles from the
-# earlier stratified check)
-ax.axvspan(0.75, 3.00, color="#1f77b4", alpha=0.10, zorder=1,
-           label="Data-supported posterior range\n(from stratified check)")
+ax.set_xscale("log")
+x_min, x_max = 0.015, 4.0
+ax.set_xlim(x_min, x_max)
+y_top = max(sweep_df[["trough1_pct_of_peak", "trough2_pct_of_peak"]].max().max() * 1.15,
+            ROBUSTNESS_THRESHOLD_PCT * 1.3)
+ax.set_ylim(0, y_top)
 
-for label, gval in LITERATURE_ANCHORS.items():
-    ax.axvline(gval, color="#2C7C2C", linestyle=":", linewidth=1.2, zorder=2)
-    ax.annotate(label, xy=(gval, ax.get_ylim()[1] if ax.get_ylim()[1] > 0 else 1),
-                fontsize=7, rotation=90, va="top", ha="right", color="#2C7C2C")
+# Range of published infectious periods (about 2-9 days; Gani & Leach 2004,
+# Dean et al. 2018), drawn as one hatched band instead of separate labels
+lit_lo, lit_hi = min(LITERATURE_ANCHORS.values()), max(LITERATURE_ANCHORS.values())
+ax.axvspan(lit_lo, lit_hi, facecolor="none", edgecolor="#2C7C2C", hatch="////",
+           linewidth=0, alpha=0.5, zorder=0,
+           label=f"Published infectious periods ({7/lit_hi:.0f}–{7/lit_lo:.0f} days)")
 
-ax.set_xlabel(r"$\gamma$ (per week) — counterfactual sweep, all other params fixed at MLE")
-ax.set_ylabel("Human transmission at trough\n(% of that gamma's own peak)")
-ax.set_title("Falsification check: does the spillover-reseeding result break down\n"
-              "for biologically implausible gamma?")
-ax.legend(frameon=False, fontsize=8, loc="upper right")
-ax.spines["top"].set_visible(False)
+ticks = [0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 3]
+ax.set_xticks(ticks)
+ax.set_xticklabels([f"{t:g}" for t in ticks])
+ax.minorticks_off()
+ax.set_xlabel(r"Removal rate $\gamma$ (week$^{-1}$)")
+ax.set_ylabel("Amplification at trough (% of peak)")
+
+# Top axis: infectious period in days (7 / gamma)
+top = ax.secondary_xaxis("top", functions=(lambda g: 7.0 / np.clip(g, 1e-9, None),
+                                           lambda d: 7.0 / np.clip(d, 1e-9, None)))
+day_ticks = [350, 140, 70, 35, 14, 7, 3.5, 2.3]
+top.set_xticks(day_ticks)
+top.set_xticklabels([f"{d:g}" for d in day_ticks])
+top.set_xlabel("Infectious period (days)")
+top.minorticks_off()
+
+ax.legend(frameon=False, fontsize=8, loc="upper center", bbox_to_anchor=(0.47, 1.0))
 ax.spines["right"].set_visible(False)
 fig.tight_layout()
 
@@ -404,5 +441,61 @@ fig.savefig(fig_path_pdf, bbox_inches="tight")
 plt.close(fig)
 print(f"\n[OK] Saved: {fig_path}")
 print(f"[OK] Saved: {fig_path_pdf}")
+
+# =============================================================================
+# SI table (values below 0.005% are shown as <0.01; the run of such rows is
+# collapsed into one row)
+# =============================================================================
+
+def pct(v):
+    return r"$<0.01$" if v < 0.005 else f"{v:.2f}"
+
+
+lines, run = [], []
+
+
+def flush_run():
+    if not run:
+        return
+    if len(run) == 1:
+        r = run[0]
+        lines.append(f"{r['gamma']:.2f} & {r['infectious_period_days']:.1f} & "
+                     f"{pct(r['trough1_pct_of_peak'])} & {pct(r['trough2_pct_of_peak'])} & "
+                     f"{pct(r['worst_trough_pct_of_peak'])} \\\\")
+    else:
+        lines.append(f"{run[0]['gamma']:.2f}--{run[-1]['gamma']:.2f} & "
+                     f"{run[0]['infectious_period_days']:.1f}--{run[-1]['infectious_period_days']:.1f} & "
+                     r"$<0.01$ & $<0.01$ & $<0.01$ \\")
+    run.clear()
+
+
+for _, r in sweep_df.iterrows():
+    if r["worst_trough_pct_of_peak"] < 0.005:
+        run.append(r)
+    else:
+        flush_run()
+        lines.append(f"{r['gamma']:.2f} & {r['infectious_period_days']:.1f} & "
+                     f"{pct(r['trough1_pct_of_peak'])} & {pct(r['trough2_pct_of_peak'])} & "
+                     f"{pct(r['worst_trough_pct_of_peak'])} \\\\")
+flush_run()
+
+tex = (r"""\begin{table}[!htbp]
+\centering
+\small
+\caption{Amplification at the two internal inter-wave troughs, as a percentage of its own peak over the fitted period, for a range of removal rates $\gamma$, with all other parameters held at the maximum-likelihood values of the main model.}
+\label{tab:supp_gamma_falsification}
+\begin{tabularx}{\textwidth}{*{5}{>{\centering\arraybackslash}X}}
+\toprule
+$\gamma$ (week$^{-1}$) & Infectious period (days) & Trough 1 (\%) & Trough 2 (\%) & Higher of the two (\%) \\
+\midrule
+""" + "\n".join(lines) + r"""
+\bottomrule
+\end{tabularx}
+\end{table}
+""")
+tex_path = OUTPUT_DIR / "gamma_falsification_sweep_table.tex"
+tex_path.write_text(tex)
+print("\n" + tex)
+print(f"[OK] Saved: {tex_path}")
 
 print("\nDone.")

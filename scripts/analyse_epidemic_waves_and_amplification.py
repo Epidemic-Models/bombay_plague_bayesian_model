@@ -156,6 +156,13 @@ MIN_LOG_PROMINENCE = 0.60
 # This excludes the smaller autumn-1898 bump and retains the three major waves.
 MIN_MAJOR_PEAK_DEATHS = 300.0
 
+# R0_H in the first weeks of the series is excluded from the R0_H summaries
+# and timing (and week 1, an averaging artefact of the first partial week, is
+# not plotted). Heavy late-monsoon rainfall raised R0_H above two in October
+# 1896 while almost no one was infected, so those weeks say nothing about
+# amplification during the first wave. Matches SI Table S13.
+R0H_EXCLUDE_FIRST_WEEKS = 4
+
 
 # =============================================================================
 # HELPERS
@@ -186,6 +193,8 @@ def summarize_phase(
         block["human_median"] / total_foi,
         np.nan,
     )
+
+    r0 = block.dropna(subset=["R0_H_median"])
 
     return {
         "wave":
@@ -234,40 +243,43 @@ def summarize_phase(
         "median_human_fraction":
             np.nanmedian(amplification_fraction),
 
+        "n_weeks_R0":
+            len(r0),
+
         "mean_R0_H":
-            block["R0_H_median"].mean(),
+            r0["R0_H_median"].mean(),
 
         "median_R0_H":
-            block["R0_H_median"].median(),
+            r0["R0_H_median"].median(),
 
         "max_R0_H":
-            block["R0_H_median"].max(),
+            r0["R0_H_median"].max(),
 
         "n_R0_median_gt1":
             int(
                 (
-                    block["R0_H_median"] > 1.0
+                    r0["R0_H_median"] > 1.0
                 ).sum()
             ),
 
         "fraction_R0_median_gt1":
             float(
                 (
-                    block["R0_H_median"] > 1.0
+                    r0["R0_H_median"] > 1.0
                 ).mean()
             ),
 
         "n_R0_q025_gt1":
             int(
                 (
-                    block["R0_H_q025"] > 1.0
+                    r0["R0_H_q025"] > 1.0
                 ).sum()
             ),
 
         "fraction_R0_q025_gt1":
             float(
                 (
-                    block["R0_H_q025"] > 1.0
+                    r0["R0_H_q025"] > 1.0
                 ).mean()
             ),
     }
@@ -334,6 +346,10 @@ def main():
         .sort_values("week_ending")
         .reset_index(drop=True)
     )
+
+    # Keep an unmasked copy of R0_H for plotting (week 1 dropped below).
+    r0_plot = df[["R0_H_q025", "R0_H_median", "R0_H_q975"]].copy()
+    r0_plot.iloc[0] = np.nan
 
     required = {
         "week_ending",
@@ -408,6 +424,12 @@ def main():
         f"{MIN_MAJOR_PEAK_DEATHS:g}"
     )
 
+
+    # R0_H: exclude the first weeks of the series (see R0H_EXCLUDE_FIRST_WEEKS).
+    r0_cols = ["R0_H_q025", "R0_H_median", "R0_H_q975"]
+    df.loc[: R0H_EXCLUDE_FIRST_WEEKS - 1, r0_cols] = np.nan
+    print(f"\nR0_H excluded for the first {R0H_EXCLUDE_FIRST_WEEKS} weeks "
+          f"(up to {df.loc[R0H_EXCLUDE_FIRST_WEEKS - 1, 'week_ending'].date()}).")
 
     # =========================================================================
     # 2. DERIVED SERIES
@@ -994,14 +1016,14 @@ def main():
             print(
                 f"  weeks with median R_0,H > 1       = "
                 f"{int(row['n_R0_median_gt1'])}/"
-                f"{int(row['n_weeks'])} "
+                f"{int(row['n_weeks_R0'])} "
                 f"({100 * row['fraction_R0_median_gt1']:.1f}%)"
             )
 
             print(
                 f"  weeks with lower CrI R_0,H > 1    = "
                 f"{int(row['n_R0_q025_gt1'])}/"
-                f"{int(row['n_weeks'])} "
+                f"{int(row['n_weeks_R0'])} "
                 f"({100 * row['fraction_R0_q025_gt1']:.1f}%)"
             )
 
@@ -1326,11 +1348,11 @@ def main():
     )
 
     axes[0].set_ylabel(
-        "Deaths"
+        "Weekly deaths"
     )
 
     axes[0].set_title(
-        "(a) Observed mortality",
+        "(A) Recorded deaths",
         loc="left",
         fontweight="bold",
     )
@@ -1348,11 +1370,11 @@ def main():
     )
 
     axes[1].set_ylabel(
-        "Spillover FOI"
+        r"Force of infection (week$^{-1}$)"
     )
 
     axes[1].set_title(
-        "(b) Inferred reservoir-associated spillover",
+        r"(B) Spillover, $\beta_R(t)$",
         loc="left",
         fontweight="bold",
     )
@@ -1376,11 +1398,11 @@ def main():
     )
 
     axes[2].set_ylabel(
-        "Amplification FOI"
+        r"Force of infection (week$^{-1}$)"
     )
 
     axes[2].set_title(
-        "(c) Inferred prevalence-associated amplification",
+        r"(C) Amplification, $\beta_H(t)I(t)/N$",
         loc="left",
         fontweight="bold",
     )
@@ -1398,8 +1420,8 @@ def main():
 
     axes[3].fill_between(
         df["week_ending"],
-        df["R0_H_q025"],
-        df["R0_H_q975"],
+        r0_plot["R0_H_q025"],
+        r0_plot["R0_H_q975"],
         alpha=0.20,
         color=COLOR_R0,
         linewidth=0,
@@ -1407,7 +1429,7 @@ def main():
 
     axes[3].plot(
         df["week_ending"],
-        df["R0_H_median"],
+        r0_plot["R0_H_median"],
         linewidth=1.6,
         color=COLOR_R0,
     )
@@ -1417,19 +1439,15 @@ def main():
         linestyle="--",
         linewidth=1.1,
         color="gray",
-        label=r"$\mathscr{R}_{0,H}=1$",
+        label=r"$\mathcal{R}_{0,H}=1$",
     )
 
     axes[3].set_ylabel(
-        r"$\mathscr{R}_{0,H}$"
-    )
-
-    axes[3].set_xlabel(
-        "Week"
+        r"$\mathcal{R}_{0,H}$"
     )
 
     axes[3].set_title(
-        "(d) Amplification reproduction number",
+        "(D) Amplification reproduction number",
         loc="left",
         fontweight="bold",
     )
@@ -1500,7 +1518,7 @@ def main():
             linestyle="--",
             linewidth=0.8,
             alpha=0.7,
-            label="Major mortality peak",
+            label="Mortality peak",
         ),
 
         Line2D(
@@ -1510,7 +1528,7 @@ def main():
             linestyle=":",
             linewidth=0.8,
             alpha=0.7,
-            label="Wave boundary / trough",
+            label="Wave boundary",
         ),
     ]
 

@@ -2,8 +2,9 @@
 # priors.py
 # =============================================================================
 """
-Prior parameter bounds for the four beta_H formulations implemented in
-mechanistic_model.py: "constant", "sigmoid", "humidity_only", "all_climate".
+Prior parameter bounds for the beta_H formulations implemented in
+mechanistic_model.py: "constant", "sigmoid", "humidity_only",
+"rainfall_only", "temperature_only", "all_climate", "all_climate_quadT".
 
 *** UPDATED to match the FINAL bounds used in run_final_all_models_v2.py. ***
 
@@ -40,6 +41,22 @@ computational choice, so it should not be widened past 1 even though it
 is pinned there in all four models -- see the project README / Discussion
 notes on this point (Gani & Leach 2004; ECDC plague fact sheet, on
 untreated case-fatality rates).
+
+"rainfall_only" and "temperature_only" are single-covariate ablation
+formulations used as sensitivity/independence checks for the rainfall and
+temperature effects on prevalence-associated amplification respectively
+(see run_rainfall_only_model.py and run_temperature_only_model.py). Both
+use only the single relevant EXTRA_BOUNDS entry (bR_H or bT_H) on top of
+SHARED_BOUNDS, keeping k=12 for both -- the same complexity as
+"humidity_only" -- so that Bayesian-evidence comparisons between them are
+at equal model complexity.
+
+"all_climate_quadT" is a sensitivity formulation: the all-climate
+amplification term plus a quadratic temperature term, bTT_H * zT^2, so that
+amplification can peak at an intermediate temperature in the same way as
+spillover. Its bound (-2, 0) matches aTT: a non-positive quadratic term
+gives a single peak (or, at bTT_H = 0, the linear all_climate form), never a
+U-shape. It has k = 15.
 
 If you need the ORIGINAL (round-0 / LHS-screening) bounds for a specific
 diagnostic or historical-comparison purpose, they are preserved as
@@ -92,8 +109,9 @@ EXTRA_BOUNDS = {
     "t_star": (4.0, 20.0),   # sigmoid: transition week
     "kappa":  (0.2, 3.0),    # sigmoid: transition steepness (sample.py's "k_sig")
     "be_H":   (-2.0, 2.0),   # humidity_only, all_climate: vapour-pressure effect
-    "bT_H":   (-2.0, 2.0),   # all_climate: temperature effect on beta_H
-    "bR_H":   (-2.0, 2.0),   # all_climate: rainfall effect on beta_H
+    "bT_H":   (-2.0, 2.0),   # temperature_only, all_climate: temperature effect on beta_H
+    "bR_H":   (-2.0, 2.0),   # rainfall_only, all_climate: rainfall effect on beta_H
+    "bTT_H":  (-2.0, 0.0),   # all_climate_quadT: quadratic temperature effect on beta_H (same bound as aTT)
 }
 
 # ------------------------------------------------------------
@@ -114,8 +132,14 @@ MODEL_SPECS = {
     "rainfall_only": {
         "extra_params": ["bR_H"]
     },
+    "temperature_only": {
+        "extra_params": ["bT_H"]
+    },
     "all_climate": {
         "extra_params": ["bT_H", "be_H", "bR_H"],
+    },
+    "all_climate_quadT": {
+        "extra_params": ["bT_H", "bTT_H", "be_H", "bR_H"],
     },
 }
 

@@ -65,10 +65,6 @@ FIG_PATH_PDF = (
 )
 
 
-# =============================================================================
-# Scenario order
-# =============================================================================
-
 SCENARIO_ORDER = [
     (
         "temperature",
@@ -78,27 +74,27 @@ SCENARIO_ORDER = [
     (
         "temperature",
         "-",
-        "Temperature -2 °C",
+        "Temperature \u22122 °C",
     ),
     (
         "vapour_pressure",
         "+",
-        "Vapour pressure +0.05 inHg",
+        "Vapour pressure +1.69 hPa",
     ),
     (
         "vapour_pressure",
         "-",
-        "Vapour pressure -0.05 inHg",
+        "Vapour pressure \u22121.69 hPa",
     ),
     (
         "rainfall",
         "+",
-        "Rainfall +2 in",
+        "Rainfall +50.8 mm",
     ),
     (
         "rainfall",
         "-",
-        "Rainfall -2 in",
+        "Rainfall \u221250.8 mm",
     ),
 ]
 
@@ -391,16 +387,11 @@ def main():
     ax.invert_yaxis()
 
     ax.set_xlabel(
-        "Change in time-averaged coefficient "
-        "relative to baseline (%)"
+        "Change in time-averaged rate relative to historical climate (%)"
     )
 
-    ax.set_title(
-        "Posterior climate-perturbation effects "
-        "on transmission coefficients\n"
-        f"(climate-driven model, "
-        f"{n_draws} posterior draws per scenario)"
-    )
+    # No title: the figure caption in the manuscript describes the panel
+    # (main model, number of posterior draws).
 
     # =========================================================================
     # Legend
@@ -416,8 +407,7 @@ def main():
             color=COLOR_R,
 
             label=(
-                r"$\beta_R$ "
-                "(reservoir-associated spillover)"
+                r"Spillover, $\beta_R$"
             ),
 
             markeredgecolor="black",
@@ -435,8 +425,7 @@ def main():
             color=COLOR_H,
 
             label=(
-                r"$\beta_H$ "
-                "(human-associated amplification)"
+                r"Amplification, $\beta_H$"
             ),
 
             markeredgecolor="black",
@@ -492,8 +481,6 @@ def main():
         FIG_PATH_PDF,
         bbox_inches="tight",
     )
-
-    plt.show()
 
     plt.close(
         fig

@@ -55,7 +55,6 @@ class PlagueLikelihood:
     >>> lik = PlagueLikelihood(merged_df, betaH_mode="humidity_only")
     >>> lik.log_likelihood(lik.example_theta())
     """
-
     def __init__(
         self,
         merged_df: pd.DataFrame,
@@ -70,6 +69,7 @@ class PlagueLikelihood:
         delay_max_weeks: int = 12,
         delay_shape: float = 2.0,
         delay_scale: float = 0.6,
+        delay_shift_weeks: float = 1.0,
         fit_target: str = "plague_deaths_reported_fit",
     ):
         if betaH_mode not in priors.MODEL_SPECS:
@@ -87,7 +87,7 @@ class PlagueLikelihood:
 
         self.f_delay = make_delay_pmf_weeks(
             kind=delay_kind, tau_weeks=delay_tau_weeks, max_weeks=delay_max_weeks,
-            shape=delay_shape, scale=delay_scale,
+            shape=delay_shape, scale=delay_scale, shift_weeks=delay_shift_weeks,
         )
 
         if fit_target not in self.merged_df.columns:
