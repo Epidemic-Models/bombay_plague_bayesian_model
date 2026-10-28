@@ -1,0 +1,20 @@
+\begin{table}[htbp]
+\centering
+\caption{Effect of rescaling the infection-to-death scaling, $\psi$, to 0.5. Each posterior draw of the main model was transformed so that $\psi$ takes the stated value, in the way that would leave expected weekly deaths unchanged in the absence of susceptible depletion ($a_0 \rightarrow a_0 + \ln r$ and $C_{\mathrm{seed}} \rightarrow r\,C_{\mathrm{seed}}$, with $r = \psi/\psi'$); every other parameter was left untouched. Values are posterior medians over 200 draws. Quantities that depend on the absolute number of infections scale with $r$, whereas $\beta_{H0}$ and $R_{0,H}$ are unchanged and the amplification share and both counterfactual reductions change by less than 2\%. Rescaling is exact only in the absence of susceptible depletion, so expected weekly deaths are reproduced to within a median of 5.21\% (95th percentile 16.50\%); the residual is absorbed by refitting with $\psi$ held fixed.}
+\label{tab:si_psi_sensitivity}
+\begin{tabularx}{\textwidth}{Xrrr}
+\toprule
+Quantity & Fitted & $\psi$ fixed & Change (\%) \\
+\midrule
+$\psi$ & 0.903 & 0.500 & -44.6 \\
+Mean $\beta_R$ & 6.98e-05 & 0.000122 & +80.5 \\
+Cumulative infections & 47,709.913 & 77,542.781 & +63.6 \\
+$\beta_{H0}$ & 1.487 & 1.487 & +0.0 \\
+Median $R_{0,H}$ & 0.675 & 0.675 & +0.0 \\
+Amplification share of $\lambda$ & 0.836 & 0.826 & -1.5 \\
+Reduction with amplification removed (\%) & 83.059 & 81.746 & -1.8 \\
+Reduction with spillover stopped after week 4 (\%) & 98.971 & 98.872 & -0.1 \\
+Minimum $S/N$ & 0.943 & 0.906 & -3.8 \\
+\bottomrule
+\end{tabularx}
+\end{table}

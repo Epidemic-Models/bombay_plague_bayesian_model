@@ -1,0 +1,114 @@
+{
+  "betaH_mode": "all_climate_quadT",
+  "fit_target": "plague_deaths_reported_fit",
+  "param_names": [
+    "N0",
+    "C_seed",
+    "gamma",
+    "a0",
+    "aT",
+    "aTT",
+    "ae",
+    "aR",
+    "betaH0",
+    "psi",
+    "nb_kappa",
+    "bT_H",
+    "bTT_H",
+    "be_H",
+    "bR_H"
+  ],
+  "bounds": {
+    "N0": [
+      800000.0,
+      850000.0
+    ],
+    "C_seed": [
+      0.0,
+      150.0
+    ],
+    "gamma": [
+      0.5,
+      3.0
+    ],
+    "a0": [
+      -11.0,
+      -5.5
+    ],
+    "aT": [
+      -2.0,
+      1.0
+    ],
+    "aTT": [
+      -2.0,
+      0.0
+    ],
+    "ae": [
+      -1.0,
+      1.0
+    ],
+    "aR": [
+      -4.0,
+      1.0
+    ],
+    "betaH0": [
+      0.01,
+      3.0
+    ],
+    "psi": [
+      0.05,
+      1.0
+    ],
+    "nb_kappa": [
+      0.1,
+      80.0
+    ],
+    "bT_H": [
+      -2.0,
+      2.0
+    ],
+    "bTT_H": [
+      -2.0,
+      0.0
+    ],
+    "be_H": [
+      -2.0,
+      2.0
+    ],
+    "bR_H": [
+      -2.0,
+      2.0
+    ]
+  },
+  "bounds_source": "src/priors.py",
+  "best_theta": {
+    "N0": 815678.6212213906,
+    "C_seed": 46.46125375142903,
+    "gamma": 2.752127883710772,
+    "a0": -10.023806916548267,
+    "aT": -0.555888491796448,
+    "aTT": -0.7893066322484699,
+    "ae": 0.18258880278281842,
+    "aR": -2.2487467844535862,
+    "betaH0": 1.742479507755076,
+    "psi": 0.9922548048208121,
+    "nb_kappa": 6.790968763851818,
+    "bT_H": 0.2086965548750377,
+    "bTT_H": -0.040327914896343575,
+    "be_H": -0.891408009794606,
+    "bR_H": 0.7736627049551732
+  },
+  "best_loglik": -778.1574651689862,
+  "logZ": -810.2507757230026,
+  "logZ_error": 0.18591430982388293,
+  "nlive": 1000,
+  "dlogz": 0.1,
+  "sample": "rslice",
+  "seeded": true,
+  "seed_source": "results/final_model_comparison_v2/nested_sampling/all_climate__plague_deaths_reported_fit__final_v2.pkl + {'bTT_H': 0.0}",
+  "repeat": 2,
+  "seed_live": 62001,
+  "seed_sampler": 62002,
+  "bTT_H_median": -0.06836467167444425,
+  "elapsed_minutes": 243.13059887886047
+}

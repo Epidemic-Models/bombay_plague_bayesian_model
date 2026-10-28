@@ -1,0 +1,17 @@
+betaH_mode,label,quantity,q025,median,q975
+all_climate,"Climate, linear temperature",full_total_infections,40707.58218913037,49007.41091249829,72581.2537370418
+all_climate,"Climate, linear temperature",no_amplification_total_infections,5684.984701581659,8595.285251981863,13627.635654668915
+all_climate,"Climate, linear temperature",no_amplification_reduction_percent,76.7400814815061,82.79291819403178,87.72957529779438
+all_climate,"Climate, linear temperature",no_spillover_after_0wk_reduction_percent,98.73081452251785,99.14058233965824,99.4369627041624
+all_climate,"Climate, linear temperature",no_spillover_after_2wk_reduction_percent,98.72371055108975,99.13339706734837,99.42904481315429
+all_climate,"Climate, linear temperature",no_spillover_after_4wk_reduction_percent,98.56582353673585,98.96992510999947,99.26059230596465
+all_climate,"Climate, linear temperature",no_spillover_after_8wk_reduction_percent,97.159554601627,97.99774535354709,98.52504807168198
+all_climate,"Climate, linear temperature",no_spillover_after_12wk_reduction_percent,90.23254138733594,92.98548158430846,94.92274529087737
+all_climate_quadT,"Climate, temperature peak",full_total_infections,40394.276109823084,47142.39058374743,66980.97912770137
+all_climate_quadT,"Climate, temperature peak",no_amplification_total_infections,5861.537043176414,8231.350895520112,13116.440034101877
+all_climate_quadT,"Climate, temperature peak",no_amplification_reduction_percent,76.19804304738469,82.79607779179254,87.06056521128761
+all_climate_quadT,"Climate, temperature peak",no_spillover_after_0wk_reduction_percent,98.75980224826561,99.17186097556362,99.45760975909023
+all_climate_quadT,"Climate, temperature peak",no_spillover_after_2wk_reduction_percent,98.75476043652532,99.16596371266628,99.45212660274115
+all_climate_quadT,"Climate, temperature peak",no_spillover_after_4wk_reduction_percent,98.60054222413079,99.00636580814965,99.29614634162905
+all_climate_quadT,"Climate, temperature peak",no_spillover_after_8wk_reduction_percent,97.47261513558587,98.10364419563552,98.5744605039779
+all_climate_quadT,"Climate, temperature peak",no_spillover_after_12wk_reduction_percent,90.23923051344823,92.56698986810846,94.77549026650215

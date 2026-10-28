@@ -1,0 +1,17 @@
+\begin{table}[htbp]
+\centering
+\caption{Transmission dynamics and counterfactual results under the main model, in which the infection-to-death scaling $\psi$ is estimated, and under a refit with $\psi$ held at 0.5. Both columns are computed from their own posterior, with 1000 draws each; values are posterior medians with 95\% credible intervals, except the last row, which pools draws and weeks. Fixing $\psi$ raises the inferred number of infections, because the same recorded deaths then imply more infections, but leaves the amplification share, $R_{0,H}$ and both counterfactual reductions essentially unchanged.}
+\label{tab:si_psi_fixed_dynamics}
+\begin{tabularx}{\textwidth}{Xll}
+\toprule
+Quantity & Main model ($\psi$ free) & $\psi$ fixed at 0.5 \\
+\midrule
+Cumulative infections & 48,327 (40,652, 70,237) & 83,457 (76,404, 92,612) \\
+Amplification share of $\lambda$ (\%) & 83.6 (77.7, 88.2) & 83.4 (77.1, 88.0) \\
+Median $R_{0,H}$ & 0.673 (0.584, 0.770) & 0.670 (0.571, 0.774) \\
+Reduction, amplification removed (\%) & 83.1 (77.1, 87.8) & 82.6 (76.0, 87.4) \\
+Reduction, spillover stopped after week 4 (\%) & 98.96 (98.57, 99.27) & 98.99 (98.57, 99.27) \\
+Draw-weeks with $R_{0,H} > 1$ (\%) & 30.7 & 31.9 \\
+\bottomrule
+\end{tabularx}
+\end{table}

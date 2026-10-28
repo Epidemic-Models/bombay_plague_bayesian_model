@@ -1,0 +1,18 @@
+\begin{table}[!htbp]
+\centering
+\caption{Log-evidence, $\log Z$, and maximum log-likelihood, $\log L_{\max}$, across 3 independent nested-sampling runs of each climate formulation. Runs differ only in the random seeds for the initial live points and the sampler; all other settings are identical (Parameter inference). $\Delta\log Z$ is the log-evidence of the temperature-peak formulation minus that of the linear-temperature formulation within the same row. Across all 9 pairings of runs, $\Delta\log Z$ ranged from 2.0 to 3.9 (mean 3.0).}
+\label{tab:si_logz_repeats}
+\begin{tabularx}{\textwidth}{X*{5}{>{\centering\arraybackslash}X}}
+\toprule
+ & \multicolumn{2}{c}{Climate, linear temperature} & \multicolumn{2}{c}{Climate, temperature peak} & \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Run & $\log Z$ & $\log L_{\max}$ & $\log Z$ & $\log L_{\max}$ & $\Delta\log Z$ \\
+\midrule
+Original & $-813.63$ & $-779.37$ & $-809.71$ & $-778.79$ & 3.92 \\
+Repeat 1 & $-813.25$ & $-779.37$ & $-810.82$ & $-778.24$ & 2.43 \\
+Repeat 2 & $-812.81$ & $-779.37$ & $-810.25$ & $-778.16$ & 2.56 \\
+\midrule
+Mean (SD) & $-813.23$ (0.41) & & $-810.26$ (0.56) & & 2.97 \\
+\bottomrule
+\end{tabularx}
+\end{table}

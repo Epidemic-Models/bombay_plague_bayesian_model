@@ -1,0 +1,113 @@
+{
+  "betaH_mode": "all_climate",
+  "fit_target": "plague_deaths_reported_fit",
+  "scenario": "tau2d_gamma_shifted",
+  "axis": "tau_plus_shifted_kernel",
+  "tau0_days": 2,
+  "delay_kind": "gamma_shifted",
+  "delay_shape": 2.0,
+  "delay_scale": 0.45714285714285713,
+  "delay_max_weeks": 12,
+  "delay_shift_weeks": 0.2857142857142857,
+  "param_names": [
+    "N0",
+    "C_seed",
+    "gamma",
+    "a0",
+    "aT",
+    "aTT",
+    "ae",
+    "aR",
+    "betaH0",
+    "psi",
+    "nb_kappa",
+    "bT_H",
+    "be_H",
+    "bR_H"
+  ],
+  "bounds": {
+    "N0": [
+      800000.0,
+      850000.0
+    ],
+    "C_seed": [
+      0.0,
+      150.0
+    ],
+    "gamma": [
+      0.5,
+      3.0
+    ],
+    "a0": [
+      -11.0,
+      -5.5
+    ],
+    "aT": [
+      -2.0,
+      1.0
+    ],
+    "aTT": [
+      -2.0,
+      0.0
+    ],
+    "ae": [
+      -1.0,
+      1.0
+    ],
+    "aR": [
+      -4.0,
+      1.0
+    ],
+    "betaH0": [
+      0.01,
+      3.0
+    ],
+    "psi": [
+      0.05,
+      1.0
+    ],
+    "nb_kappa": [
+      0.1,
+      80.0
+    ],
+    "bT_H": [
+      -2.0,
+      2.0
+    ],
+    "be_H": [
+      -2.0,
+      2.0
+    ],
+    "bR_H": [
+      -2.0,
+      2.0
+    ]
+  },
+  "best_theta": {
+    "N0": 848948.6633444378,
+    "C_seed": 144.87314582389308,
+    "gamma": 1.6526902473334684,
+    "a0": -10.3082219253005,
+    "aT": -0.7263970421148624,
+    "aTT": -0.7950919736808781,
+    "ae": 0.32729751658338,
+    "aR": -2.33924442387614,
+    "betaH0": 1.189701838112279,
+    "psi": 0.9622001850610984,
+    "nb_kappa": 6.6468318115267016,
+    "bT_H": 0.16016444487149917,
+    "be_H": -0.5817398482277794,
+    "bR_H": 0.5189100722694917
+  },
+  "best_loglik": -782.0561449676438,
+  "logZ": -818.0466105264991,
+  "logZ_error": 0.20183491139206022,
+  "nlive": 1000,
+  "dlogz": 0.1,
+  "sample": "rslice",
+  "seeded": true,
+  "seed_loglik": -878.0035189404554,
+  "live_points_seed": 51004,
+  "dynesty_seed": 61004,
+  "elapsed_minutes": 391.77696499824526
+}

@@ -1,0 +1,51 @@
+start_year,end_year,region,category,label,source,mid_year,duration
+525.0,531.0,Levant / Syria,Drought / environmental stress,Low rainfall / poor harvests / locusts,Stathakopoulos,528.0,6.0
+525.0,531.0,Levant / Syria,Unspecified epidemic,Epidemic,Stathakopoulos,528.0,6.0
+535.0,554.0,Italy / W. Mediterranean,War / political disruption,Gothic War,Historical chronology,544.5,19.0
+536.0,537.0,Mediterranean-wide,Major climate forcing,536–537 dust veil,Stathakopoulos; Büntgen et al.; Sigl et al.,536.5,1.0
+540.0,540.0,Levant / Syria,War / political disruption,Persian capture of Antioch,Procopius,540.0,0.0
+541.0,541.0,Egypt / Nile,Plague,Pelusium 541,Procopius; Stathakopoulos,541.0,0.0
+541.6,541.95,Egypt / Nile,Plague,Alexandria,Stathakopoulos,541.7750000000001,0.35000000000002274
+541.6,542.2,Levant / Syria,Plague,Palestine / Levant,John of Ephesus; Stathakopoulos,541.9000000000001,0.6000000000000227
+542.0,542.0,Levant / Syria,Plague,Antioch,Stathakopoulos,542.0,0.0
+542.0,542.0,Anatolia,Plague,Myra / Galatia,Stathakopoulos,542.0,0.0
+542.0,542.7,Balkans / Constantinople,Plague,Constantinople 542,Procopius; John of Ephesus,542.35,0.7000000000000455
+542.2,542.8,Balkans / Constantinople,Famine / shortage,Urban famine,Procopius; Stathakopoulos,542.5,0.599999999999909
+543.0,544.0,Italy / W. Mediterranean,Plague,Italy / Rome,Marcellinus Comes; Stathakopoulos,543.5,1.0
+545.0,547.0,Mesopotamia / Iraq,Famine / shortage,Famine + epidemic,John of Ephesus; Stathakopoulos,546.0,2.0
+545.5,546.95,Italy / W. Mediterranean,Famine / shortage,Rome siege famine,Procopius; Stathakopoulos,546.225,1.4500000000000455
+558.0,558.6,Balkans / Constantinople,Plague,Constantinople 558,Agathias; Malalas; Theophanes,558.3,0.6000000000000227
+560.0,562.0,Levant / Syria,Plague,Cilicia / Antioch,Stathakopoulos,561.0,2.0
+567.0,568.0,Levant / Syria,Drought / environmental stress,Drought,Agapios; Stathakopoulos,567.5,1.0
+567.0,568.0,Levant / Syria,Unspecified epidemic,Epidemic,Agapios; Stathakopoulos,567.5,1.0
+571.0,571.0,Italy / W. Mediterranean,Plague,Italy / Gaul 571,Marius of Avenches; Gregory of Tours,571.0,0.0
+573.0,574.0,Balkans / Constantinople,Plague,Constantinople 573–574,John of Biclaro; Stathakopoulos,573.5,1.0
+590.0,590.0,Italy / W. Mediterranean,Plague,Rome 590,Gregory of Tours; Gregory the Great,590.0,0.0
+591.0,592.0,Levant / Syria,Plague,Antioch 591–592,Euagrius,591.5,1.0
+597.0,598.0,Balkans / Constantinople,Plague,Thessalonica / Avar region,Miracles of St Demetrius; Theophylact,597.5,1.0
+602.0,628.0,Levant / Syria,War / political disruption,Byzantine–Sasanian War,Historical chronology,615.0,26.0
+602.0,628.0,Mesopotamia / Iraq,War / political disruption,Byzantine–Sasanian War,Historical chronology,615.0,26.0
+634.0,642.0,Levant / Syria,War / political disruption,Arab conquest,Historical chronology,638.0,8.0
+639.0,642.0,Egypt / Nile,War / political disruption,Arab conquest of Egypt,Historical chronology,640.5,3.0
+680.0,680.0,Italy / W. Mediterranean,Plague,Plague,Stathakopoulos,680.0,0.0
+687.0,687.25,Mesopotamia / Iraq,Drought / environmental stress,3-month drought,John Bar Penkaye,687.125,0.25
+687.0,688.0,Mesopotamia / Iraq,Famine / shortage,Severe famine,John Bar Penkaye,687.5,1.0
+687.0,688.0,Mesopotamia / Iraq,Plague,Plague,John Bar Penkaye,687.5,1.0
+698.0,699.0,Balkans / Constantinople,Plague,Plague 698–699,Stathakopoulos,698.5,1.0
+713.0,713.0,Levant / Syria,Plague,Plague 713,Syriac chronicles,713.0,0.0
+732.0,735.0,Levant / Syria,Plague,Plague 732–735,Theophanes; Arabic sources,733.5,3.0
+733.0,735.0,Egypt / Nile,Plague,Plague,Arabic sources,734.0,2.0
+733.0,735.0,Mesopotamia / Iraq,Plague,Plague,Arabic sources,734.0,2.0
+735.0,735.0,Anatolia,Famine / shortage,Famine during expedition,Agapios,735.0,0.0
+735.0,735.0,Anatolia,Probable plague,Pestilence / probable plague,Agapios; Stathakopoulos,735.0,0.0
+742.0,743.0,Balkans / Constantinople,Famine / shortage,Constantinople famine,Theophanes; Nikephoros,742.5,1.0
+743.0,744.0,Egypt / Nile,Drought / environmental stress,Two-year drought,Severus; Stathakopoulos,743.5,1.0
+743.0,744.0,Egypt / Nile,Famine / shortage,Severe famine,Severus; Stathakopoulos,743.5,1.0
+744.0,745.0,Egypt / Nile,Plague,Plague 744–745,Severus; Arabic sources,744.5,1.0
+744.0,749.0,Levant / Syria,War / political disruption,Umayyad civil war / Abbasid revolt,Historical chronology,746.5,5.0
+744.0,749.0,Mesopotamia / Iraq,War / political disruption,Umayyad civil war / Abbasid revolt,Historical chronology,746.5,5.0
+744.0,745.0,Levant / Syria,Famine / shortage,Famine,Chronicle of Zuqnin; Stathakopoulos,744.5,1.0
+744.0,745.0,Levant / Syria,Plague,Plague,Chronicle of Zuqnin; Stathakopoulos,744.5,1.0
+744.0,745.0,Mesopotamia / Iraq,Famine / shortage,Famine,Chronicle of Zuqnin; Stathakopoulos,744.5,1.0
+744.0,745.0,Mesopotamia / Iraq,Plague,Plague,Chronicle of Zuqnin; Stathakopoulos,744.5,1.0
+745.0,749.0,Mediterranean-wide,Plague,Late first-pandemic recurrences,Stathakopoulos,747.0,4.0

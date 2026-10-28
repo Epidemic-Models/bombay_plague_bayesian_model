@@ -1,0 +1,128 @@
+{
+  "betaH_mode": "rainfall_only",
+  "fit_target": "plague_deaths_reported_fit",
+  "param_names": [
+    "N0",
+    "C_seed",
+    "gamma",
+    "a0",
+    "aT",
+    "aTT",
+    "ae",
+    "aR",
+    "betaH0",
+    "psi",
+    "nb_kappa",
+    "bR_H"
+  ],
+  "bounds": {
+    "N0": [
+      800000.0,
+      850000.0
+    ],
+    "C_seed": [
+      0.0,
+      150.0
+    ],
+    "gamma": [
+      0.5,
+      3.0
+    ],
+    "a0": [
+      -11.0,
+      -5.5
+    ],
+    "aT": [
+      -2.0,
+      1.0
+    ],
+    "aTT": [
+      -2.0,
+      0.0
+    ],
+    "ae": [
+      -1.0,
+      1.0
+    ],
+    "aR": [
+      -4.0,
+      1.0
+    ],
+    "betaH0": [
+      0.01,
+      3.0
+    ],
+    "psi": [
+      0.05,
+      1.0
+    ],
+    "nb_kappa": [
+      0.1,
+      80.0
+    ],
+    "bR_H": [
+      -2.0,
+      2.0
+    ]
+  },
+  "bounds_source": "src/priors.py",
+  "bound_overrides": {},
+  "run_name": "rainfall_only",
+  "edge_report": {
+    "a0": {
+      "bounds": [
+        -11.0,
+        -5.5
+      ],
+      "median": -10.34685397553834,
+      "ci": [
+        -10.911053671021516,
+        -9.647519348349906
+      ],
+      "mass_in_lowest_5pct_over_flat": 2.871509691943537
+    },
+    "aR": {
+      "bounds": [
+        -4.0,
+        1.0
+      ],
+      "median": -3.14805219324459,
+      "ci": [
+        -3.928888978352124,
+        -2.2423241550549924
+      ],
+      "mass_in_lowest_5pct_over_flat": 2.2823900024412307
+    }
+  },
+  "best_theta": {
+    "N0": 824577.3563017914,
+    "C_seed": 101.88834176051944,
+    "gamma": 2.6881148101156875,
+    "a0": -10.554648594747986,
+    "aT": -1.0783640178431184,
+    "aTT": -0.30549817747510866,
+    "ae": -0.21150321743860945,
+    "aR": -3.209107121875748,
+    "betaH0": 1.4466064610453238,
+    "psi": 0.9638402931809289,
+    "nb_kappa": 4.995628515493282,
+    "bR_H": 0.5157426414162334
+  },
+  "best_loglik": -797.9329076063075,
+  "logZ": -824.9188568896284,
+  "logZ_error": 0.1787576547676189,
+  "nlive": 1000,
+  "dlogz": 0.1,
+  "sample": "rslice",
+  "seeded": true,
+  "seed_source": "results/rainfall_only_check/nested_sampling/rainfall_only__plague_deaths_reported_fit__check.pkl",
+  "seed_loglik": -797.9329076063075,
+  "unseeded_logZ": -825.4818651373674,
+  "elapsed_minutes": 205.00570929845173,
+  "bR_H_median": 0.5224257905330454,
+  "bR_H_ci": [
+    0.4351715519858972,
+    0.6382062556442624
+  ],
+  "bR_H_p_positive": 0.9999999707664315
+}

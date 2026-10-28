@@ -1,0 +1,100 @@
+{
+  "betaH_mode": "temperature_only",
+  "fit_target": "plague_deaths_reported_fit",
+  "param_names": [
+    "N0",
+    "C_seed",
+    "gamma",
+    "a0",
+    "aT",
+    "aTT",
+    "ae",
+    "aR",
+    "betaH0",
+    "psi",
+    "nb_kappa",
+    "bT_H"
+  ],
+  "bounds": {
+    "N0": [
+      800000.0,
+      850000.0
+    ],
+    "C_seed": [
+      0.0,
+      150.0
+    ],
+    "gamma": [
+      0.5,
+      3.0
+    ],
+    "a0": [
+      -11.0,
+      -5.5
+    ],
+    "aT": [
+      -2.0,
+      1.0
+    ],
+    "aTT": [
+      -2.0,
+      0.0
+    ],
+    "ae": [
+      -1.0,
+      1.0
+    ],
+    "aR": [
+      -4.0,
+      1.0
+    ],
+    "betaH0": [
+      0.01,
+      3.0
+    ],
+    "psi": [
+      0.05,
+      1.0
+    ],
+    "nb_kappa": [
+      0.1,
+      80.0
+    ],
+    "bT_H": [
+      -2.0,
+      2.0
+    ]
+  },
+  "bounds_source": "src/priors.py",
+  "best_theta": {
+    "N0": 817070.581696806,
+    "C_seed": 54.83090936223747,
+    "gamma": 2.9244579327707436,
+    "a0": -9.009430787247306,
+    "aT": -0.5996242840101045,
+    "aTT": -0.35462120136238795,
+    "ae": -0.5896275415118036,
+    "aR": -0.11867004629450761,
+    "betaH0": 1.4238640589851976,
+    "psi": 0.9482550148983463,
+    "nb_kappa": 3.8728338907897504,
+    "bT_H": -0.23954964288778413
+  },
+  "best_loglik": -816.4474127361716,
+  "logZ": -841.7197406881804,
+  "logZ_error": 0.17444268214140668,
+  "nlive": 1000,
+  "dlogz": 0.1,
+  "bound_method": "multi",
+  "sample_method": "rslice",
+  "manually_seeded_live_point": false,
+  "sampler_random_seed": 13345,
+  "posterior_resample_seed": 55321,
+  "elapsed_minutes": 137.88827128410338,
+  "bT_H_median": -0.28252978225996883,
+  "bT_H_ci": [
+    -0.5352707460195563,
+    0.009311308082567304
+  ],
+  "bT_H_p_positive": 0.028383438910859902
+}

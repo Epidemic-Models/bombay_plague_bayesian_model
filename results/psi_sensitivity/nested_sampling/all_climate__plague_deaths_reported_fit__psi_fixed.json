@@ -1,0 +1,12 @@
+{
+  "mode": "all_climate",
+  "fit_target": "plague_deaths_reported_fit",
+  "psi_fixed": 0.5,
+  "nlive": 1000,
+  "dlogz": 0.1,
+  "ndim": 13,
+  "best_loglik": -784.5028857703107,
+  "logZ": -815.680008331807,
+  "logZ_error": 0.19693028524984477,
+  "minutes": 280.37494373718897
+}

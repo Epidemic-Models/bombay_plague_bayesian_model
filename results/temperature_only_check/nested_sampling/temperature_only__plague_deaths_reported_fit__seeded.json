@@ -1,0 +1,128 @@
+{
+  "betaH_mode": "temperature_only",
+  "fit_target": "plague_deaths_reported_fit",
+  "param_names": [
+    "N0",
+    "C_seed",
+    "gamma",
+    "a0",
+    "aT",
+    "aTT",
+    "ae",
+    "aR",
+    "betaH0",
+    "psi",
+    "nb_kappa",
+    "bT_H"
+  ],
+  "bounds": {
+    "N0": [
+      800000.0,
+      850000.0
+    ],
+    "C_seed": [
+      0.0,
+      150.0
+    ],
+    "gamma": [
+      0.5,
+      3.0
+    ],
+    "a0": [
+      -11.0,
+      -5.5
+    ],
+    "aT": [
+      -2.0,
+      1.0
+    ],
+    "aTT": [
+      -2.0,
+      0.0
+    ],
+    "ae": [
+      -1.0,
+      1.0
+    ],
+    "aR": [
+      -4.0,
+      1.0
+    ],
+    "betaH0": [
+      0.01,
+      3.0
+    ],
+    "psi": [
+      0.05,
+      1.0
+    ],
+    "nb_kappa": [
+      0.1,
+      80.0
+    ],
+    "bT_H": [
+      -2.0,
+      2.0
+    ]
+  },
+  "bounds_source": "src/priors.py",
+  "bound_overrides": {},
+  "run_name": "temperature_only",
+  "edge_report": {
+    "a0": {
+      "bounds": [
+        -11.0,
+        -5.5
+      ],
+      "median": -8.86624131698575,
+      "ci": [
+        -9.187763822026188,
+        -8.392691323201031
+      ],
+      "mass_in_lowest_5pct_over_flat": 3.556072960924878e-46
+    },
+    "aR": {
+      "bounds": [
+        -4.0,
+        1.0
+      ],
+      "median": -0.1287029300420766,
+      "ci": [
+        -0.3673070137049807,
+        0.10549112992226356
+      ],
+      "mass_in_lowest_5pct_over_flat": 9.78037812562859e-48
+    }
+  },
+  "best_theta": {
+    "N0": 833568.4188602315,
+    "C_seed": 52.35897256935992,
+    "gamma": 1.8764248494867382,
+    "a0": -9.073086826089858,
+    "aT": -0.47884743008582586,
+    "aTT": -0.3345735066983613,
+    "ae": -0.5965714082421747,
+    "aR": -0.07948891908934108,
+    "betaH0": 0.8577351334502374,
+    "psi": 0.9836134237032788,
+    "nb_kappa": 3.6414106869443623,
+    "bT_H": -0.3411367533387726
+  },
+  "best_loglik": -816.246017229937,
+  "logZ": -841.8535731864109,
+  "logZ_error": 0.17091118904299632,
+  "nlive": 1000,
+  "dlogz": 0.1,
+  "sample": "rslice",
+  "seeded": true,
+  "seed_source": "results/temperature_only_check/nested_sampling/temperature_only__plague_deaths_reported_fit__check.pkl",
+  "seed_loglik": -816.4474127361716,
+  "unseeded_logZ": -841.7197406881804,
+  "elapsed_minutes": 146.90387405554455,
+  "bT_H_median": -0.2836454953324276,
+  "bT_H_ci": [
+    -0.5394683623182357,
+    -0.02086982898440372
+  ],
+  "bT_H_p_positive": 0.017921571618152454
+}

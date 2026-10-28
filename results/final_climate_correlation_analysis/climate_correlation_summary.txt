@@ -1,0 +1,28 @@
+CLIMATE COVARIATE CORRELATION ANALYSIS
+======================================================================
+
+Number of fitted weeks: 141
+
+Temperature vs vapour pressure in model input:
+Pearson r = 0.901568
+Spearman rho = 0.823767
+
+Full Pearson climate correlation matrix:
+                 Temperature  Vapour pressure  Rainfall
+Temperature         1.000000         0.901568  0.234286
+Vapour pressure     0.901568         1.000000  0.490820
+Rainfall            0.234286         0.490820  1.000000
+
+Full Spearman climate correlation matrix:
+                 Temperature  Vapour pressure  Rainfall
+Temperature         1.000000         0.823767  0.286413
+Vapour pressure     0.823767         1.000000  0.560773
+Rainfall            0.286413         0.560773  1.000000
+
+Posterior temperature-vapour-pressure coefficient dependence: spillover
+Pearson r = -0.731793
+Spearman rho = -0.722083
+
+Posterior temperature-vapour-pressure coefficient dependence: amplification
+Pearson r = -0.924547
+Spearman rho = -0.917789
